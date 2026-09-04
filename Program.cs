@@ -1,18 +1,50 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using banhmihanhphuc.Data;
-using banhmihanhphuc.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// =====================================================
+// KẾT NỐI DATABASE
+// =====================================================
+
+// Local:
+// lấy từ appsettings.Development.json
+//
+// Render:
+// lấy từ biến môi trường
+// ConnectionStrings__DefaultConnection
+
+var connectionString =
+    builder.Configuration
+        .GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Không tìm thấy ConnectionStrings:DefaultConnection."
+    );
+}
+
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
+    options.UseNpgsql(connectionString)
 );
-// Add services to the container.
+
+
+// =====================================================
+// MVC
+// =====================================================
+
 builder.Services.AddControllersWithViews();
+
+
+// =====================================================
+// ĐĂNG NHẬP COOKIE
+// =====================================================
 
 builder.Services
     .AddAuthentication(
@@ -20,78 +52,82 @@ builder.Services
     )
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.LoginPath =
+            "/Account/Login";
+
+        options.AccessDeniedPath =
+            "/Account/AccessDenied";
     });
+
 
 builder.Services.AddAuthorization();
 
+
+// =====================================================
+// FORWARDED HEADERS
+// Dùng khi chạy sau proxy của Render
+// =====================================================
+
+builder.Services.Configure<ForwardedHeadersOptions>(
+    options =>
+    {
+        options.ForwardedHeaders =
+            ForwardedHeaders.XForwardedFor |
+            ForwardedHeaders.XForwardedProto;
+
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    }
+);
+
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
+// =====================================================
+// HTTP PIPELINE
+// =====================================================
+
+app.UseForwardedHeaders();
+
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseExceptionHandler(
+        "/Home/Error"
+    );
+
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
+
 app.UseRouting();
 
+
 app.UseAuthentication();
+
 app.UseAuthorization();
+
+
+// =====================================================
+// FILE TĨNH
+// =====================================================
 
 app.MapStaticAssets();
 
+
+// =====================================================
+// ROUTE
+// =====================================================
+
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+        name: "default",
+        pattern:
+            "{controller=Home}/{action=Index}/{id?}"
+    )
     .WithStaticAssets();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    var staffUser = await db.Users
-        .FirstOrDefaultAsync(u => u.Username == "staff");
-
-    if (staffUser == null)
-    {
-        staffUser = new User
-        {
-            Username = "staff",
-            FullName = "Nhân viên bán hàng",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-            IsActive = true,
-            CreatedAt = DateTime.Now
-        };
-
-        db.Users.Add(staffUser);
-        await db.SaveChangesAsync();
-    }
-
-    var staffRole = await db.Roles
-        .FirstOrDefaultAsync(r => r.Name == "Staff");
-
-    if (staffRole != null)
-    {
-        bool alreadyAssigned = await db.UserRoles
-            .AnyAsync(ur =>
-                ur.UserId == staffUser.Id &&
-                ur.RoleId == staffRole.Id
-            );
-
-        if (!alreadyAssigned)
-        {
-            db.UserRoles.Add(new UserRole
-            {
-                UserId = staffUser.Id,
-                RoleId = staffRole.Id
-            });
-
-            await db.SaveChangesAsync();
-        }
-    }
-}
 app.Run();
