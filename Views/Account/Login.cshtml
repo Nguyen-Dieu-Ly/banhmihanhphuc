@@ -1,0 +1,204 @@
+@model banhmihanhphuc.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Bánh Mì Hạnh Phúc</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #fff7ed, #fde7cf);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            width: 900px;
+            max-width: 92%;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+        }
+
+        .login-left {
+            background: linear-gradient(160deg, #7c2d12, #c2410c);
+            color: white;
+            padding: 60px 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-left h1 {
+            margin: 0 0 15px;
+            font-size: 38px;
+        }
+
+        .login-left p {
+            font-size: 17px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .login-right {
+            padding: 55px 45px;
+        }
+
+        .login-right h2 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 30px;
+            color: #431407;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #f97316;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #f97316;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            background: #ea580c;
+        }
+
+        .error-box {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+        }
+
+        .validation {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        @@media (max-width: 700px) {
+            .login-container {
+                grid-template-columns: 1fr;
+            }
+
+            .login-left {
+                padding: 35px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="login-left">
+        <h1>🥖 Bánh Mì Hạnh Phúc</h1>
+        <p>
+            Hệ thống quản lý bán hàng, gọi món tại bàn,
+            bán mang đi, thanh toán và thống kê doanh thu.
+        </p>
+    </div>
+
+    <div class="login-right">
+
+        <h2>Đăng nhập</h2>
+        <div class="subtitle">
+            Nhập tài khoản để truy cập hệ thống
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error-box">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form asp-controller="Account"
+              asp-action="Login"
+              method="post">
+
+            <div class="form-group">
+                <label>Tên đăng nhập</label>
+
+                <input asp-for="Username"
+                       placeholder="Nhập tên đăng nhập" />
+
+                <span asp-validation-for="Username"
+                      class="validation"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Mật khẩu</label>
+
+                <input asp-for="Password"
+                       placeholder="Nhập mật khẩu" />
+
+                <span asp-validation-for="Password"
+                      class="validation"></span>
+            </div>
+
+            <button type="submit"
+                    class="btn-login">
+                Đăng nhập
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

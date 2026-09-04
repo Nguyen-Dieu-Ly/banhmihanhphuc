@@ -1,0 +1,151 @@
+@model banhmihanhphuc.Models.Food
+
+@{
+    ViewData["Title"] = "Xóa món";
+}
+
+<style>
+    .delete-page {
+        max-width: 620px;
+        margin: 45px auto;
+    }
+
+    .delete-card {
+        background: white;
+        padding: 34px;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .delete-icon {
+        font-size: 46px;
+        margin-bottom: 10px;
+    }
+
+    .delete-card h2 {
+        font-size: 27px;
+        margin-bottom: 10px;
+    }
+
+    .delete-card p {
+        color: #666;
+    }
+
+    .food-info {
+        margin: 25px 0;
+        padding: 20px;
+        background: #fafafa;
+        border-radius: 10px;
+        text-align: left;
+    }
+
+    .food-info div {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+    }
+
+    .food-info span {
+        color: #777;
+    }
+
+    .delete-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-cancel,
+    .btn-delete {
+        flex: 1;
+        padding: 12px;
+        border-radius: 9px;
+        text-decoration: none;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .btn-cancel {
+        background: white;
+        border: 1px solid #ddd;
+        color: #333;
+    }
+
+    .btn-delete {
+        border: none;
+        background: #ef4444;
+        color: white;
+        cursor: pointer;
+    }
+</style>
+
+<div class="delete-page">
+
+    <div class="delete-card">
+
+        <div class="delete-icon">
+            🗑️
+        </div>
+
+        <h2>Xóa món?</h2>
+
+        <p>
+            Bạn có chắc chắn muốn xóa
+            <strong>@Model.Name</strong> không?
+        </p>
+
+        <div class="food-info">
+
+            <div>
+                <span>Tên món</span>
+                <strong>@Model.Name</strong>
+            </div>
+
+            <div>
+                <span>Danh mục</span>
+                <strong>
+                    @(Model.Category != null
+                        ? Model.Category.Name
+                        : "Chưa phân loại")
+                </strong>
+            </div>
+
+            <div>
+                <span>Giá bán</span>
+                <strong>
+                    @Model.Price.ToString("N0") đ
+                </strong>
+            </div>
+
+        </div>
+
+        <form asp-controller="Foods"
+              asp-action="DeleteConfirmed"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="id"
+                   value="@Model.Id" />
+
+            <div class="delete-actions">
+
+                <a asp-controller="Foods"
+                   asp-action="Index"
+                   class="btn-cancel">
+                    Hủy
+                </a>
+
+                <button type="submit"
+                        class="btn-delete">
+                    Xóa món
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

@@ -1,0 +1,210 @@
+@model List<banhmihanhphuc.Models.RestaurantTable>
+
+@{
+    ViewData["Title"] = "Bàn";
+}
+
+<style>
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .add-btn {
+        border: none;
+        background: #f97316;
+        color: white;
+        padding: 11px 18px;
+        border-radius: 9px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .table-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .table-card {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .table-name {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .table-info {
+        color: #666666;
+        margin-bottom: 10px;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .status-empty {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-serving {
+        background: #ffedd5;
+        color: #c2410c;
+    }
+
+    .status-reserved {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .edit-btn,
+    .delete-btn {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .edit-btn {
+        background: #fff7ed;
+        color: #ea580c;
+        border: 1px solid #fdba74;
+    }
+
+    .delete-btn {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .error-message {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    padding: 12px 15px;
+    border-radius: 9px;
+    margin-bottom: 18px;
+    font-weight: 500;
+}
+
+    @@media (max-width: 1000px) {
+        .table-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .table-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+
+<div class="page-title">
+    Quản lý bàn
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="error-message">
+        @TempData["Error"]
+    </div>
+}
+
+
+<div class="toolbar">
+
+    <a asp-controller="Tables"
+       asp-action="Create"
+       class="add-btn">
+        + Thêm bàn
+    </a>
+
+</div>
+
+
+<div class="table-grid">
+
+    @foreach (var table in Model)
+    {
+        <div class="table-card">
+
+            <div class="table-name">
+                @table.TableName
+            </div>
+
+            <div class="table-info">
+                Sức chứa: @table.Capacity người
+            </div>
+
+
+            @if (table.Status == "Empty")
+            {
+                <div class="status status-empty">
+                    Trống
+                </div>
+            }
+            else if (table.Status == "Serving")
+            {
+                <div class="status status-serving">
+                    Đang phục vụ
+                </div>
+            }
+            else
+            {
+                <div class="status status-reserved">
+                    Đã đặt
+                </div>
+            }
+
+
+            <div class="actions">
+
+                <a asp-controller="Tables"
+                   asp-action="Edit"
+                   asp-route-id="@table.Id"
+                   class="edit-btn">
+                    Sửa
+                </a>
+
+                <a asp-controller="Tables"
+                   asp-action="Delete"
+                   asp-route-id="@table.Id"
+                   class="delete-btn">
+                    Xóa
+                </a>
+
+            </div>
+
+        </div>
+    }
+
+</div>

@@ -1,0 +1,521 @@
+@model List<banhmihanhphuc.Models.Food>
+
+@{
+    ViewData["Title"] = "Món ăn";
+
+    var categories =
+        ViewBag.Categories as List<banhmihanhphuc.Models.Category>;
+
+    string? search = ViewBag.Search;
+
+    int? selectedCategoryId = ViewBag.CategoryId;
+}
+
+<style>
+
+    /* =========================================
+       TIÊU ĐỀ TRANG
+       ========================================= */
+
+    .food-page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+
+    /* =========================================
+       THANH CÔNG CỤ
+       ========================================= */
+
+    .food-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .food-filter {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        width: 260px;
+        padding: 10px 13px;
+        border: 1px solid #dddddd;
+        border-radius: 9px;
+        outline: none;
+    }
+
+    .search-input:focus {
+        border-color: #f97316;
+    }
+
+    .category-select {
+        min-width: 180px;
+        padding: 10px 13px;
+        border: 1px solid #dddddd;
+        border-radius: 9px;
+        background: white;
+        outline: none;
+    }
+
+    .filter-btn {
+        border: none;
+        background: #444444;
+        color: white;
+        padding: 10px 17px;
+        border-radius: 9px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .reset-btn {
+        padding: 10px 15px;
+        border: 1px solid #dddddd;
+        border-radius: 9px;
+        color: #444444;
+        background: white;
+        text-decoration: none;
+    }
+
+    .add-food-btn {
+        background: #f97316;
+        color: white;
+        padding: 11px 18px;
+        border-radius: 9px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+
+    /* =========================================
+       BẢNG DANH SÁCH MÓN
+       ========================================= */
+
+    .food-table-wrapper {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .food-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .food-table th {
+        background: #fafafa;
+        padding: 14px 12px;
+        text-align: left;
+        font-size: 14px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .food-table td {
+        padding: 13px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    .food-table tbody tr:hover {
+        background: #fffaf5;
+    }
+
+    .food-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+
+    /* =========================================
+       ẢNH MÓN
+       ========================================= */
+
+    .food-image {
+        width: 64px;
+        height: 64px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 1px solid #eeeeee;
+    }
+
+    .no-image {
+        width: 64px;
+        height: 64px;
+        border-radius: 10px;
+        background: #fff7ed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+    }
+
+
+    /* =========================================
+       THÔNG TIN MÓN
+       ========================================= */
+
+    .food-name {
+        font-weight: 650;
+    }
+
+    .food-price {
+        font-weight: 700;
+        color: #ea580c;
+        white-space: nowrap;
+    }
+
+    .category-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        background: #f3f4f6;
+        color: #444444;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+
+
+    /* =========================================
+       TRẠNG THÁI
+       ========================================= */
+
+    .status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .status-available {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-unavailable {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+
+    /* =========================================
+       NÚT SỬA - XÓA
+       ========================================= */
+
+    .food-actions {
+        display: flex;
+        gap: 7px;
+    }
+
+    .edit-food-btn,
+    .delete-food-btn {
+        padding: 7px 11px;
+        border-radius: 7px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .edit-food-btn {
+        background: #fff7ed;
+        color: #ea580c;
+        border: 1px solid #fdba74;
+    }
+
+    .delete-food-btn {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .food-message {
+    background: #ecfdf5;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    padding: 12px 15px;
+    border-radius: 9px;
+    margin-bottom: 18px;
+}
+
+
+    /* =========================================
+       KHÔNG CÓ DỮ LIỆU
+       ========================================= */
+
+    .empty-food {
+        text-align: center;
+        padding: 50px 20px;
+        color: #777777;
+    }
+
+
+    /* =========================================
+       RESPONSIVE
+       ========================================= */
+
+    @@media (max-width: 900px) {
+
+        .food-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .food-table {
+            min-width: 850px;
+        }
+
+    }
+
+</style>
+
+
+<div class="food-page-title">
+    Quản lý món ăn
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="food-message">
+        @TempData["Message"]
+    </div>
+}
+<!-- =========================================
+     TÌM KIẾM + LỌC + THÊM MÓN
+     ========================================= -->
+
+<div class="food-toolbar">
+
+    <form asp-controller="Foods"
+          asp-action="Index"
+          method="get"
+          class="food-filter">
+
+        <input type="text"
+               name="search"
+               value="@search"
+               class="search-input"
+               placeholder="Tìm kiếm món ăn..." />
+
+
+        <select name="categoryId"
+                class="category-select">
+
+            <option value="">
+                Tất cả danh mục
+            </option>
+
+            @if (categories != null)
+            {
+                foreach (var category in categories)
+                {
+                    if (selectedCategoryId == category.Id)
+                    {
+                        <option value="@category.Id"
+                                selected>
+                            @category.Name
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@category.Id">
+                            @category.Name
+                        </option>
+                    }
+                }
+            }
+
+        </select>
+
+
+        <button type="submit"
+                class="filter-btn">
+            Tìm kiếm
+        </button>
+
+
+        <a asp-controller="Foods"
+           asp-action="Index"
+           class="reset-btn">
+            Đặt lại
+        </a>
+
+    </form>
+
+
+    <a asp-controller="Foods"
+       asp-action="Create"
+       class="add-food-btn">
+
+        + Thêm món
+
+    </a>
+
+</div>
+
+
+<!-- =========================================
+     DANH SÁCH MÓN ĂN
+     ========================================= -->
+
+<div class="food-table-wrapper">
+
+    @if (Model.Count == 0)
+    {
+        <div class="empty-food">
+
+            🥖
+
+            <br><br>
+
+            Không tìm thấy món ăn.
+
+        </div>
+    }
+    else
+    {
+        <table class="food-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Ảnh</th>
+
+                    <th>Tên món</th>
+
+                    <th>Danh mục</th>
+
+                    <th>Giá bán</th>
+
+                    <th>Trạng thái</th>
+
+                    <th>Thao tác</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                @foreach (var food in Model)
+                {
+                    <tr>
+
+                        <!-- ẢNH MÓN -->
+                        <td>
+
+                            @if (!string.IsNullOrEmpty(food.ImageUrl))
+                            {
+                                <img src="@food.ImageUrl"
+                                     class="food-image"
+                                     alt="@food.Name" />
+                            }
+                            else
+                            {
+                                <div class="no-image">
+                                    🥖
+                                </div>
+                            }
+
+                        </td>
+
+
+                        <!-- TÊN MÓN -->
+                        <td>
+
+                            <div class="food-name">
+                                @food.Name
+                            </div>
+
+                        </td>
+
+
+                        <!-- DANH MỤC -->
+                        <td>
+
+                            <span class="category-badge">
+
+                                @(food.Category != null
+                                    ? food.Category.Name
+                                    : "Chưa phân loại")
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- GIÁ -->
+                        <td>
+
+                            <span class="food-price">
+
+                                @food.Price.ToString("N0") đ
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- TRẠNG THÁI -->
+                        <td>
+
+                            @if (food.IsAvailable)
+                            {
+                                <span class="status status-available">
+                                    Đang bán
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status status-unavailable">
+                                    Ngừng bán
+                                </span>
+                            }
+
+                        </td>
+
+
+                        <!-- THAO TÁC -->
+                        <td>
+
+                            <div class="food-actions">
+
+                                <a asp-controller="Foods"
+                                   asp-action="Edit"
+                                   asp-route-id="@food.Id"
+                                   class="edit-food-btn">
+
+                                    Sửa
+
+                                </a>
+
+
+                                <a asp-controller="Foods"
+                                   asp-action="Delete"
+                                   asp-route-id="@food.Id"
+                                   class="delete-food-btn">
+
+                                    Xóa
+
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+    }
+
+</div>

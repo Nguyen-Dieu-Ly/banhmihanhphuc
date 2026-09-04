@@ -1,0 +1,1782 @@
+@model List<banhmihanhphuc.Models.Food>
+
+@{
+    ViewData["Title"] = "Bán hàng";
+}
+
+<style>
+    .sales-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        border: 1px solid #eeeeee;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    /* =========================
+       CHỌN HÌNH THỨC BÁN
+       ========================= */
+
+    .sale-type {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .type-btn {
+        width: 220px;
+        padding: 17px;
+        border-radius: 12px;
+        border: 1px solid #dddddd;
+        background: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .type-btn.active {
+        background: #fff7ed;
+        border: 2px solid #f97316;
+        color: #c2410c;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    /* =========================
+       SƠ ĐỒ BÀN
+       ========================= */
+
+    .table-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .table-card {
+        min-height: 100px;
+        border: 1px solid #dddddd;
+        border-radius: 12px;
+        padding: 18px 12px;
+        background: white;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .table-card:hover {
+        border-color: #f97316;
+        transform: translateY(-2px);
+    }
+
+    .table-card.selected {
+        background: #fff7ed;
+        border: 2px solid #f97316;
+        color: #c2410c;
+    }
+
+    .table-name {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+
+    .table-status {
+        font-size: 13px;
+    }
+
+    .status-empty {
+        color: #16a34a;
+    }
+
+    .status-serving {
+        color: #ea580c;
+    }
+
+    .status-reserved {
+        color: #2563eb;
+    }
+
+    /* =========================
+       KHU ORDER
+       ========================= */
+
+    #orderSection {
+        display: none;
+        margin-top: 20px;
+    }
+
+    .order-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 18px;
+    }
+
+    .back-btn {
+        border: 1px solid #dddddd;
+        background: white;
+        border-radius: 8px;
+        padding: 9px 14px;
+        cursor: pointer;
+    }
+
+    .current-order-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #ea580c;
+    }
+
+    .order-layout {
+        display: grid;
+        grid-template-columns: 1.25fr 0.95fr;
+        gap: 20px;
+    }
+
+    /* =========================
+       THỰC ĐƠN
+       ========================= */
+
+    .menu-panel,
+    .invoice-panel {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 18px;
+    }
+
+    .food-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .food-card {
+        border: 1px solid #eeeeee;
+        border-radius: 11px;
+        padding: 10px;
+        cursor: pointer;
+        background: white;
+        transition: 0.2s;
+        overflow: hidden;
+    }
+
+    .food-card:hover {
+        border-color: #f97316;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        transform: translateY(-2px);
+    }
+
+    /* Ảnh món trong thực đơn bán hàng */
+    .food-image {
+        width: 100%;
+        height: 125px;
+        border-radius: 9px;
+        overflow: hidden;
+        background: #fff7ed;
+        margin-bottom: 10px;
+    }
+
+    .food-image img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    /* Món chưa có ảnh thì hiện biểu tượng bánh mì */
+    .food-no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+    }
+
+    .food-name {
+        font-weight: 600;
+        min-height: 45px;
+    }
+
+    .food-price {
+        margin-top: 7px;
+        color: #ea580c;
+        font-weight: 700;
+    }
+
+    /* =========================
+       HÓA ĐƠN
+       ========================= */
+
+    .invoice-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .invoice-info {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        font-size: 14px;
+        margin-bottom: 15px;
+        color: #555;
+    }
+
+    .order-code {
+        background: #fff7ed;
+        color: #ea580c;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    .cart-empty {
+        text-align: center;
+        color: #777777;
+        padding: 60px 10px;
+    }
+
+    .cart-header {
+        display: grid;
+        grid-template-columns: 35px 1fr 105px 90px 100px 30px;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 10px 0;
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .cart-item {
+        display: grid;
+        grid-template-columns: 35px 1fr 105px 90px 100px 30px;
+        gap: 8px;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #eeeeee;
+        font-size: 14px;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quantity-control button {
+        width: 28px;
+        height: 28px;
+        border: 1px solid #dddddd;
+        background: white;
+        cursor: pointer;
+    }
+
+    .quantity-number {
+        min-width: 30px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-top: 1px solid #dddddd;
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .delete-btn {
+        border: none;
+        background: transparent;
+        color: red;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .summary {
+        margin-top: 20px;
+        border-top: 1px dashed #dddddd;
+        padding-top: 15px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .total-row {
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    .total-value {
+        color: #dc2626;
+    }
+
+    /* =========================
+       THANH TOÁN
+       ========================= */
+
+    .payment-methods {
+        display: flex;
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .payment-btn {
+        flex: 1;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #dddddd;
+        background: white;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .payment-btn.active {
+        border: 2px solid #16a34a;
+        background: #f0fdf4;
+    }
+
+    .checkout-btn {
+        width: 100%;
+        padding: 15px;
+        margin-top: 18px;
+        border: none;
+        border-radius: 10px;
+        background: #f97316;
+        color: white;
+        font-size: 17px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 1100px) {
+        .order-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .table-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+</style>
+
+
+<div class="sales-title">
+    Bán hàng
+</div>
+
+
+<!-- =========================
+     CHỌN HÌNH THỨC BÁN HÀNG
+     ========================= -->
+
+<div class="panel" id="startSection">
+
+    <div class="section-title">
+        Chọn hình thức bán hàng
+    </div>
+
+    <div class="sale-type">
+
+        <button class="type-btn active"
+                id="dineInBtn">
+            🪑 Ăn tại quán
+        </button>
+
+        <button class="type-btn"
+                id="takeAwayBtn">
+            🥡 Mang đi
+        </button>
+
+    </div>
+
+
+    <!-- =========================
+         SƠ ĐỒ BÀN
+         ========================= -->
+
+    <div id="tableSection">
+
+        <div class="section-title">
+            Chọn bàn
+        </div>
+
+        <div class="table-grid">
+
+            @foreach (var table in ViewBag.Tables)
+            {
+                <div class="table-card"
+                     data-table-id="@table.Id"
+                     data-table-name="@table.TableName"
+                     data-table-status="@table.Status">
+
+                    <div class="table-name">
+                        @table.TableName
+                    </div>
+
+                    @if (table.Status == "Empty")
+                    {
+                        <div class="table-status status-empty">
+                            🟢 Trống
+                        </div>
+                    }
+                    else if (table.Status == "Serving")
+                    {
+                        <div class="table-status status-serving">
+                            🟠 Đang phục vụ
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-status status-reserved">
+                            🔵 Đã đặt
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     THỰC ĐƠN + HÓA ĐƠN
+     Chỉ hiện sau khi chọn bàn
+     hoặc chọn Mang đi
+     ========================= -->
+
+<div id="orderSection">
+
+    <div class="order-header">
+
+        <button type="button"
+                class="back-btn"
+                id="backBtn">
+            ← Quay lại
+        </button>
+
+        <div class="current-order-title"
+             id="currentOrderTitle">
+        </div>
+
+    </div>
+
+
+    <div class="order-layout">
+
+
+        <!-- =========================
+             THỰC ĐƠN
+             ========================= -->
+
+        <div class="menu-panel">
+
+            <div class="section-title">
+                Thực đơn
+            </div>
+
+            <div class="food-grid">
+
+                @foreach (var food in Model)
+                {
+                    <div class="food-card"
+                         data-id="@food.Id"
+                         data-name="@food.Name"
+                         data-price="@food.Price">
+
+                        <!-- Ảnh món: lấy trực tiếp từ ImageUrl của món -->
+                        <div class="food-image">
+
+                            @if (!string.IsNullOrWhiteSpace(food.ImageUrl))
+                            {
+                                <img src="@food.ImageUrl"
+                                     alt="@food.Name" />
+                            }
+                            else
+                            {
+                                <div class="food-no-image">
+                                    🥖
+                                </div>
+                            }
+
+                        </div>
+
+                        <div class="food-name">
+                            @food.Name
+                        </div>
+
+                        <div class="food-price">
+                            @food.Price.ToString("N0") đ
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             HÓA ĐƠN
+             ========================= -->
+
+        <div class="invoice-panel">
+
+            <div class="invoice-title">
+                HÓA ĐƠN
+            </div>
+
+            <div class="invoice-info">
+
+                <span id="invoiceType">
+                    Hình thức:
+                </span>
+
+                <span id="invoiceTable"></span>
+
+                <span class="order-code"
+                      id="orderCode">
+                    Chưa tạo mã
+                </span>
+
+            </div>
+
+
+            <div class="cart-header">
+
+                <div>STT</div>
+                <div>Tên món</div>
+                <div>SL</div>
+                <div>Đơn giá</div>
+                <div>Thành tiền</div>
+                <div></div>
+
+            </div>
+
+
+            <div id="cartContainer">
+
+                <div class="cart-empty">
+                    Chưa có món nào trong hóa đơn
+                </div>
+
+            </div>
+
+
+            <div class="summary">
+
+                <div class="summary-row">
+                    <span>Tạm tính:</span>
+                    <strong id="subtotalAmount">
+                        0 đ
+                    </strong>
+                </div>
+
+                <div class="summary-row total-row">
+                    <span>Tổng tiền:</span>
+
+                    <span class="total-value"
+                          id="totalAmount">
+                        0 đ
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="section-title">
+                Phương thức thanh toán
+            </div>
+
+
+            <div class="payment-methods">
+
+                <button class="payment-btn active"
+                        data-method="Cash">
+                    💵 Tiền mặt
+                </button>
+
+                <button class="payment-btn"
+                        data-method="BankTransfer">
+                    🏦 Chuyển khoản
+                </button>
+
+            </div>
+
+
+            <button type="button"
+                    class="checkout-btn"
+                    id="checkoutBtn">
+                Thanh toán
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // =========================================
+    // CÁC BIẾN CỦA MÀN HÌNH BÁN HÀNG
+    // =========================================
+
+    // Giỏ hàng đang hiển thị
+    let cart = [];
+
+    // Mặc định là ăn tại quán
+    let orderType = "DineIn";
+
+    // Bàn đang được chọn
+    let selectedTableId = null;
+    let selectedTableName = null;
+
+    // ID hóa đơn đang mở của bàn
+    let currentOrderId = null;
+
+    // Phương thức thanh toán mặc định
+    let paymentMethod = "Cash";
+
+
+    const startSection =
+        document.getElementById("startSection");
+
+    const tableSection =
+        document.getElementById("tableSection");
+
+    const orderSection =
+        document.getElementById("orderSection");
+
+
+    // =========================================
+    // CHỌN ĂN TẠI QUÁN
+    // =========================================
+
+    document.getElementById("dineInBtn")
+        .addEventListener("click", function () {
+
+            orderType = "DineIn";
+
+            this.classList.add("active");
+
+            document.getElementById("takeAwayBtn")
+                .classList.remove("active");
+
+            // Hiện sơ đồ bàn
+            tableSection.style.display = "block";
+
+            // Chưa hiện menu khi chưa chọn bàn
+            orderSection.style.display = "none";
+        });
+
+
+    // =========================================
+    // CHỌN MANG ĐI
+    // =========================================
+
+    document.getElementById("takeAwayBtn")
+        .addEventListener("click", function () {
+
+            orderType = "TakeAway";
+
+            selectedTableId = null;
+            selectedTableName = null;
+            currentOrderId = null;
+
+            this.classList.add("active");
+
+            document.getElementById("dineInBtn")
+                .classList.remove("active");
+
+            // Mang đi không cần bàn
+            tableSection.style.display = "none";
+
+            // Đơn mang đi hiện tại dùng giỏ hàng mới
+            cart = [];
+
+            renderCart();
+
+            openOrderScreen();
+
+            document.getElementById("currentOrderTitle")
+                .innerText = "ĐƠN MANG ĐI";
+
+            document.getElementById("invoiceType")
+                .innerText = "Hình thức: Mang đi";
+
+            document.getElementById("invoiceTable")
+                .innerText = "";
+
+            document.getElementById("orderCode")
+                .innerText = "Tạo khi thanh toán";
+        });
+
+
+    // =========================================
+    // CHỌN BÀN
+    // =========================================
+
+    document.querySelectorAll(".table-card")
+        .forEach(function (table) {
+
+            table.addEventListener("click", async function () {
+
+                const status =
+                    this.dataset.tableStatus;
+
+                // Bàn đã đặt thì chưa cho order trực tiếp
+                if (status === "Reserved") {
+
+                    alert("Bàn này đang ở trạng thái đã đặt.");
+
+                    return;
+                }
+
+                selectedTableId =
+                    parseInt(this.dataset.tableId);
+
+                selectedTableName =
+                    this.dataset.tableName;
+
+                orderType = "DineIn";
+
+                document.querySelectorAll(".table-card")
+                    .forEach(x =>
+                        x.classList.remove("selected"));
+
+                this.classList.add("selected");
+
+                // Lấy hóa đơn đang mở của bàn từ PostgreSQL
+                await loadTableOrder(selectedTableId);
+
+                openOrderScreen();
+            });
+
+        });
+
+
+    // =========================================
+    // LẤY HÓA ĐƠN ĐANG MỞ CỦA BÀN
+    // =========================================
+
+    async function loadTableOrder(tableId) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `/Sales/GetTableOrder?tableId=${tableId}`
+                );
+
+            if (!response.ok) {
+
+                alert("Không thể tải hóa đơn của bàn.");
+
+                return;
+            }
+
+            const data =
+                await response.json();
+
+            // Nếu bàn chưa có đơn thì orderId sẽ là null.
+            // Chỉ khi khách chọn món đầu tiên thì AddItem mới tạo hóa đơn.
+            currentOrderId =
+                data.orderId ?? null;
+
+            selectedTableId =
+                data.tableId;
+
+            selectedTableName =
+                data.tableName;
+
+            // Chuyển dữ liệu từ PostgreSQL sang giỏ hàng.
+            // Bàn chưa gọi món thì items là mảng rỗng.
+            cart = Array.isArray(data.items)
+                ? data.items.map(item => ({
+                    id: item.foodId,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity
+                }))
+                : [];
+
+            document.getElementById("currentOrderTitle")
+                .innerText =
+                selectedTableName;
+
+            document.getElementById("invoiceType")
+                .innerText =
+                "Hình thức: Ăn tại quán";
+
+            document.getElementById("invoiceTable")
+                .innerText =
+                "Bàn: " + selectedTableName;
+
+            // Bấm vào bàn trống chỉ mở thực đơn, chưa tạo mã hóa đơn.
+            document.getElementById("orderCode")
+                .innerText =
+                data.orderCode
+                    ? data.orderCode
+                    : "Chưa tạo mã";
+
+            // QUAN TRỌNG:
+            // Không đổi bàn sang Serving tại đây.
+            // Bàn chỉ chuyển sang Đang phục vụ sau khi AddItem thành công.
+
+            renderCart();
+        }
+        catch (error) {
+
+            console.error(error);
+
+            alert("Có lỗi khi tải hóa đơn.");
+        }
+    }
+
+
+    // =========================================
+    // MỞ MÀN HÌNH THỰC ĐƠN + HÓA ĐƠN
+    // =========================================
+
+    function openOrderScreen() {
+
+        startSection.style.display = "none";
+
+        orderSection.style.display = "block";
+    }
+
+
+    // =========================================
+    // QUAY LẠI SƠ ĐỒ BÀN
+    // =========================================
+
+    document.getElementById("backBtn")
+        .addEventListener("click", function () {
+
+            orderSection.style.display = "none";
+
+            startSection.style.display = "block";
+
+            if (orderType === "DineIn") {
+
+                tableSection.style.display = "block";
+            }
+            else {
+
+                tableSection.style.display = "none";
+            }
+
+            /*
+                Không xóa dữ liệu của đơn tại bàn.
+                Vì món đã được lưu trong PostgreSQL.
+            */
+        });
+
+
+    // =========================================
+    // BẤM MÓN ĂN
+    // =========================================
+
+    document.querySelectorAll(".food-card")
+        .forEach(function (card) {
+
+            card.addEventListener("click", async function () {
+
+                const id =
+                    parseInt(this.dataset.id);
+
+                const name =
+                    this.dataset.name;
+
+                const price =
+                    parseFloat(this.dataset.price);
+
+
+                // =============================
+                // ĂN TẠI QUÁN
+                // =============================
+
+                if (orderType === "DineIn") {
+
+                    // Chỉ cần đã chọn bàn.
+                    // currentOrderId có thể vẫn null nếu đây là món đầu tiên.
+                    if (!selectedTableId) {
+
+                        alert("Vui lòng chọn bàn trước.");
+
+                        return;
+                    }
+
+                    await addItemToTableOrder(id);
+
+                    return;
+                }
+
+
+                // =============================
+                // MANG ĐI
+                // =============================
+
+                // Mang đi chưa cần lưu đơn chờ
+                const existing =
+                    cart.find(x => x.id === id);
+
+                if (existing) {
+
+                    existing.quantity++;
+                }
+                else {
+
+                    cart.push({
+                        id: id,
+                        name: name,
+                        price: price,
+                        quantity: 1
+                    });
+                }
+
+                renderCart();
+            });
+
+        });
+
+
+    // =========================================
+// THÊM MÓN VÀO ĐƠN TẠI BÀN
+// Chỉ khi chọn món đầu tiên mới tạo hóa đơn
+// =========================================
+
+async function addItemToTableOrder(foodId) {
+
+    // Phải chọn bàn trước
+    if (!selectedTableId) {
+
+        alert("Vui lòng chọn bàn.");
+
+        return;
+    }
+
+
+    try {
+
+        const body =
+            new URLSearchParams();
+
+
+        // Nếu bàn đã có hóa đơn thì gửi orderId
+        // Nếu chưa có thì không gửi
+        if (currentOrderId) {
+
+            body.append(
+                "orderId",
+                currentOrderId
+            );
+        }
+
+
+        // Gửi món được chọn
+        body.append(
+            "foodId",
+            foodId
+        );
+
+
+        // Gửi bàn đang được chọn
+        body.append(
+            "tableId",
+            selectedTableId
+        );
+
+
+        const response =
+            await fetch(
+                "/Sales/AddItem",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded"
+                    },
+
+                    body: body
+                }
+            );
+
+
+        if (!response.ok) {
+
+            const message =
+                await response.text();
+
+            console.error(message);
+
+            alert("Không thể thêm món.");
+
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        // =========================================
+        // LƯU LẠI HÓA ĐƠN VỪA ĐƯỢC TẠO
+        // =========================================
+
+        currentOrderId =
+            data.orderId;
+
+
+        // Nếu giao diện có chỗ hiện mã hóa đơn
+        const orderCodeElement =
+            document.getElementById("orderCode");
+
+        if (orderCodeElement) {
+
+            orderCodeElement.innerText =
+                data.orderCode;
+        }
+
+
+        // =========================================
+        // CHỈ SAU KHI GỌI MÓN
+        // BÀN MỚI CHUYỂN SANG ĐANG PHỤC VỤ
+        // =========================================
+
+        const tableCard =
+            document.querySelector(
+                `.table-card[data-table-id="${selectedTableId}"]`
+            );
+
+        if (tableCard) {
+
+            tableCard.dataset.tableStatus =
+                "Serving";
+
+            const statusElement =
+                tableCard.querySelector(
+                    ".table-status"
+                );
+
+            if (statusElement) {
+
+                statusElement.className =
+                    "table-status status-serving";
+
+                statusElement.innerHTML =
+                    "🟠 Đang phục vụ";
+            }
+        }
+
+
+        // =========================================
+        // TẢI LẠI HÓA ĐƠN
+        // ĐỂ HIỆN MÓN VỪA THÊM
+        // =========================================
+
+        await loadTableOrder(
+            selectedTableId
+        );
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Có lỗi xảy ra khi thêm món."
+        );
+    }
+}
+
+
+
+    // =========================================
+    // TĂNG SỐ LƯỢNG
+    // =========================================
+
+    async function increaseQuantity(index) {
+
+        // Ăn tại quán thì cập nhật PostgreSQL
+        if (orderType === "DineIn") {
+
+            await changeTableQuantity(
+                cart[index].id,
+                1
+            );
+
+            return;
+        }
+
+        // Mang đi cập nhật trên giao diện
+        cart[index].quantity++;
+
+        renderCart();
+    }
+
+
+    // =========================================
+    // GIẢM SỐ LƯỢNG
+    // =========================================
+
+    async function decreaseQuantity(index) {
+
+        // Ăn tại quán thì cập nhật PostgreSQL
+        if (orderType === "DineIn") {
+
+            await changeTableQuantity(
+                cart[index].id,
+                -1
+            );
+
+            return;
+        }
+
+        // Mang đi
+        if (cart[index].quantity > 1) {
+
+            cart[index].quantity--;
+        }
+        else {
+
+            cart.splice(index, 1);
+        }
+
+        renderCart();
+    }
+
+
+    // =========================================
+    // CẬP NHẬT SỐ LƯỢNG TRONG POSTGRESQL
+    // =========================================
+
+    async function changeTableQuantity(
+        foodId,
+        change
+    ) {
+
+        try {
+
+            const body =
+                new URLSearchParams();
+
+            body.append(
+                "orderId",
+                currentOrderId
+            );
+
+            body.append(
+                "foodId",
+                foodId
+            );
+
+            body.append(
+                "change",
+                change
+            );
+
+
+            const response =
+                await fetch(
+                    "/Sales/ChangeQuantity",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+                        },
+
+                        body: body
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                alert("Không thể cập nhật số lượng.");
+
+                return;
+            }
+
+
+            // Đọc lại hóa đơn mới nhất
+            await loadTableOrder(
+                selectedTableId
+            );
+        }
+        catch (error) {
+
+            console.error(error);
+
+            alert("Có lỗi khi cập nhật số lượng.");
+        }
+    }
+
+
+    // =========================================
+    // XÓA MÓN
+    // =========================================
+
+    async function removeItem(index) {
+
+        // =============================
+        // ĂN TẠI QUÁN
+        // =============================
+
+        if (orderType === "DineIn") {
+
+            const foodId =
+                cart[index].id;
+
+            try {
+
+                const body =
+                    new URLSearchParams();
+
+                body.append(
+                    "orderId",
+                    currentOrderId
+                );
+
+                body.append(
+                    "foodId",
+                    foodId
+                );
+
+
+                const response =
+                    await fetch(
+                        "/Sales/RemoveItem",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded"
+                            },
+
+                            body: body
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    alert("Không thể xóa món.");
+
+                    return;
+                }
+
+
+                await loadTableOrder(
+                    selectedTableId
+                );
+            }
+            catch (error) {
+
+                console.error(error);
+
+                alert("Có lỗi khi xóa món.");
+            }
+
+            return;
+        }
+
+
+        // =============================
+        // MANG ĐI
+        // =============================
+
+        cart.splice(index, 1);
+
+        renderCart();
+    }
+
+
+    // =========================================
+    // HIỂN THỊ HÓA ĐƠN
+    // =========================================
+
+    function renderCart() {
+
+        const container =
+            document.getElementById(
+                "cartContainer"
+            );
+
+
+        if (cart.length === 0) {
+
+            container.innerHTML =
+                '<div class="cart-empty">Chưa có món nào trong hóa đơn</div>';
+
+            document.getElementById(
+                "subtotalAmount"
+            ).innerText = "0 đ";
+
+            document.getElementById(
+                "totalAmount"
+            ).innerText = "0 đ";
+
+            return;
+        }
+
+
+        let html = "";
+
+        let total = 0;
+
+
+        cart.forEach(
+            function (item, index) {
+
+                const subtotal =
+                    item.price *
+                    item.quantity;
+
+                total += subtotal;
+
+
+                html += `
+                    <div class="cart-item">
+
+                        <div>
+                            ${index + 1}
+                        </div>
+
+                        <div>
+                            ${item.name}
+                        </div>
+
+                        <div class="quantity-control">
+
+                            <button type="button"
+                                    onclick="decreaseQuantity(${index})">
+                                −
+                            </button>
+
+                            <div class="quantity-number">
+                                ${item.quantity}
+                            </div>
+
+                            <button type="button"
+                                    onclick="increaseQuantity(${index})">
+                                +
+                            </button>
+
+                        </div>
+
+                        <div>
+                            ${item.price.toLocaleString("vi-VN")}
+                        </div>
+
+                        <div>
+                            ${subtotal.toLocaleString("vi-VN")}
+                        </div>
+
+                        <button type="button"
+                                class="delete-btn"
+                                onclick="removeItem(${index})">
+                            ×
+                        </button>
+
+                    </div>
+                `;
+            }
+        );
+
+
+        container.innerHTML =
+            html;
+
+
+        document.getElementById(
+            "subtotalAmount"
+        ).innerText =
+            total.toLocaleString("vi-VN") +
+            " đ";
+
+
+        document.getElementById(
+            "totalAmount"
+        ).innerText =
+            total.toLocaleString("vi-VN") +
+            " đ";
+    }
+
+
+    // =========================================
+    // CHỌN PHƯƠNG THỨC THANH TOÁN
+    // =========================================
+
+    document.querySelectorAll(
+        ".payment-btn"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                document.querySelectorAll(
+                    ".payment-btn"
+                ).forEach(
+                    x =>
+                        x.classList.remove(
+                            "active"
+                        )
+                );
+
+
+                this.classList.add(
+                    "active"
+                );
+
+
+                paymentMethod =
+                    this.dataset.method;
+            }
+        );
+
+    });
+
+    // =========================================
+// THANH TOÁN
+// =========================================
+// =========================================
+// THANH TOÁN
+// =========================================
+
+document.getElementById("checkoutBtn")
+    .addEventListener("click", async function () {
+
+        // =====================================================
+        // THANH TOÁN ĐƠN MANG ĐI
+        // =====================================================
+
+        if (orderType === "TakeAway") {
+
+            // Không cho thanh toán nếu chưa có món
+            if (cart.length === 0) {
+
+                alert("Đơn mang đi chưa có món.");
+
+                return;
+            }
+
+
+            // Xác nhận trước khi thanh toán
+            const confirmPayment = confirm(
+                "Xác nhận thanh toán đơn mang đi?"
+            );
+
+            if (!confirmPayment) {
+
+                return;
+            }
+
+
+            try {
+
+                // Chỉ gửi ID món và số lượng lên server
+                const requestData = {
+
+                    paymentMethod: paymentMethod,
+
+                    items: cart.map(item => ({
+                        foodId: item.id,
+                        quantity: item.quantity
+                    }))
+                };
+
+
+                const response = await fetch(
+                    "/Sales/CheckoutTakeAway",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(requestData)
+                    }
+                );
+
+
+                if (!response.ok) {
+
+                    const message =
+                        await response.text();
+
+                    alert(
+                        message ||
+                        "Không thể thanh toán đơn mang đi."
+                    );
+
+                    return;
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                // Hỏi có muốn in hóa đơn không
+                const printInvoice = confirm(
+                    "Thanh toán thành công.\n" +
+                    "Mã hóa đơn: " + data.orderCode + "\n" +
+                    "Tổng tiền: " +
+                    Number(data.totalAmount)
+                        .toLocaleString("vi-VN") +
+                    " đ\n\n" +
+                    "Bạn có muốn in hóa đơn không?"
+                );
+
+
+                // Nếu bấm OK thì chuyển sang trang hóa đơn
+                if (printInvoice) {
+
+                    window.location.href =
+                        `/Sales/Invoice?id=${data.orderId}`;
+
+                    return;
+                }
+
+
+                // Nếu không in thì xóa giỏ hàng
+                cart = [];
+
+                renderCart();
+
+
+                // Quay lại màn hình chọn hình thức bán
+                orderSection.style.display =
+                    "none";
+
+                startSection.style.display =
+                    "block";
+
+
+                // Mặc định quay về ăn tại quán
+                orderType =
+                    "DineIn";
+
+                document.getElementById(
+                    "dineInBtn"
+                ).classList.add(
+                    "active"
+                );
+
+                document.getElementById(
+                    "takeAwayBtn"
+                ).classList.remove(
+                    "active"
+                );
+
+                tableSection.style.display =
+                    "block";
+            }
+            catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Có lỗi xảy ra khi thanh toán đơn mang đi."
+                );
+            }
+
+            return;
+        }
+
+
+
+        // =====================================================
+        // THANH TOÁN ĐƠN ĂN TẠI QUÁN
+        // =====================================================
+
+        // Phải có hóa đơn đang mở
+        if (!currentOrderId) {
+
+            alert(
+                "Không tìm thấy hóa đơn cần thanh toán."
+            );
+
+            return;
+        }
+
+
+        // Không cho thanh toán nếu chưa có món
+        if (cart.length === 0) {
+
+            alert(
+                "Hóa đơn chưa có món."
+            );
+
+            return;
+        }
+
+
+        // Xác nhận trước khi thanh toán
+        const confirmPayment = confirm(
+            "Xác nhận thanh toán hóa đơn này?"
+        );
+
+        if (!confirmPayment) {
+
+            return;
+        }
+
+
+        try {
+
+            const body =
+                new URLSearchParams();
+
+            body.append(
+                "orderId",
+                currentOrderId
+            );
+
+            body.append(
+                "paymentMethod",
+                paymentMethod
+            );
+
+
+            const response = await fetch(
+                "/Sales/Checkout",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded"
+                    },
+
+                    body: body
+                }
+            );
+
+
+            if (!response.ok) {
+
+                const message =
+                    await response.text();
+
+                alert(
+                    message ||
+                    "Không thể thanh toán hóa đơn."
+                );
+
+                return;
+            }
+
+
+            const data =
+                await response.json();
+
+
+            // Hỏi có muốn in hóa đơn không
+            const printInvoice = confirm(
+                "Thanh toán thành công.\n" +
+                "Mã hóa đơn: " + data.orderCode + "\n" +
+                "Tổng tiền: " +
+                Number(data.totalAmount)
+                    .toLocaleString("vi-VN") +
+                " đ\n\n" +
+                "Bạn có muốn in hóa đơn không?"
+            );
+
+
+            // Nếu bấm OK thì chuyển sang trang hóa đơn
+            if (printInvoice) {
+
+                window.location.href =
+                    `/Sales/Invoice?id=${data.orderId}`;
+
+                return;
+            }
+
+
+            // =========================================
+            // ĐỔI BÀN TRỞ LẠI TRỐNG
+            // =========================================
+
+            const tableCard =
+                document.querySelector(
+                    `.table-card[data-table-id="${selectedTableId}"]`
+                );
+
+            if (tableCard) {
+
+                tableCard.dataset.tableStatus =
+                    "Empty";
+
+                const statusElement =
+                    tableCard.querySelector(
+                        ".table-status"
+                    );
+
+                if (statusElement) {
+
+                    statusElement.className =
+                        "table-status status-empty";
+
+                    statusElement.innerHTML =
+                        "🟢 Trống";
+                }
+            }
+
+
+            // Xóa dữ liệu hóa đơn đang thao tác
+            cart = [];
+
+            currentOrderId = null;
+
+            selectedTableId = null;
+
+            selectedTableName = null;
+
+            renderCart();
+
+
+            // Quay lại màn hình chọn bàn
+            orderSection.style.display =
+                "none";
+
+            startSection.style.display =
+                "block";
+
+            tableSection.style.display =
+                "block";
+        }
+        catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Có lỗi xảy ra khi thanh toán."
+            );
+        }
+
+    });
+</script>

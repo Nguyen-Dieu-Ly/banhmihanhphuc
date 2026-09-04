@@ -1,0 +1,1128 @@
+@model banhmihanhphuc.Models.StatisticsViewModel
+
+@{
+    ViewData["Title"] = "Thống kê";
+
+    string currentRange =
+        ViewBag.Range as string ?? "7days";
+
+    decimal maxRevenue =
+        Model.DailyStatistics.Count > 0
+            ? Model.DailyStatistics.Max(x => x.Revenue)
+            : 0;
+
+    decimal saleTotal =
+        Model.DineInRevenue +
+        Model.TakeAwayRevenue;
+
+    decimal dineInPercent =
+        saleTotal > 0
+            ? Model.DineInRevenue / saleTotal * 100
+            : 0;
+
+    decimal takeAwayPercent =
+        saleTotal > 0
+            ? Model.TakeAwayRevenue / saleTotal * 100
+            : 0;
+
+    decimal paymentTotal =
+        Model.CashRevenue +
+        Model.BankTransferRevenue;
+
+    decimal cashPercent =
+        paymentTotal > 0
+            ? Model.CashRevenue / paymentTotal * 100
+            : 0;
+
+    decimal bankPercent =
+        paymentTotal > 0
+            ? Model.BankTransferRevenue / paymentTotal * 100
+            : 0;
+}
+
+
+<style>
+
+    .statistics-page {
+        width: 100%;
+    }
+
+
+    /* =========================================
+       TIÊU ĐỀ
+       ========================================= */
+
+    .statistics-title {
+        font-size: 30px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .statistics-description {
+        color: #777;
+        margin-bottom: 25px;
+    }
+
+
+    /* =========================================
+       BỘ LỌC THỜI GIAN
+       ========================================= */
+
+    .filter-box {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .filter-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 13px;
+    }
+
+    .quick-filter {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+
+    .filter-btn {
+        padding: 9px 16px;
+        border: 1px solid #dddddd;
+        background: white;
+        color: #333;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .filter-btn:hover {
+        color: #ea580c;
+        border-color: #f97316;
+    }
+
+    .filter-btn.active {
+        background: #fff7ed;
+        border: 1px solid #f97316;
+        color: #ea580c;
+    }
+
+    .custom-filter {
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .date-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .date-group label {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .date-input {
+        padding: 9px 12px;
+        border: 1px solid #dddddd;
+        border-radius: 8px;
+        background: white;
+    }
+
+    .apply-btn {
+        border: none;
+        background: #333;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+
+    /* =========================================
+       CARD SỐ LIỆU
+       ========================================= */
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .summary-card {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .summary-icon {
+        font-size: 27px;
+        margin-bottom: 12px;
+    }
+
+    .summary-label {
+        color: #777;
+        font-size: 14px;
+        margin-bottom: 7px;
+    }
+
+    .summary-value {
+        font-size: 25px;
+        font-weight: 700;
+    }
+
+    .revenue-value {
+        color: #ea580c;
+    }
+
+
+    /* =========================================
+       2 CỘT PHÂN TÍCH
+       ========================================= */
+
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+
+    .analysis-card {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-title {
+        font-size: 19px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .analysis-row {
+        margin-bottom: 19px;
+    }
+
+    .analysis-info {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 8px;
+    }
+
+    .analysis-name {
+        font-weight: 600;
+    }
+
+    .analysis-number {
+        text-align: right;
+    }
+
+    .analysis-number strong {
+        color: #ea580c;
+    }
+
+    .progress-background {
+        height: 9px;
+        background: #eeeeee;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .progress-value {
+        height: 100%;
+        background: #f97316;
+        border-radius: 20px;
+    }
+
+
+    /* =========================================
+       BIỂU ĐỒ + TOP MÓN
+       ========================================= */
+
+    .report-grid {
+        display: grid;
+        grid-template-columns: 1.7fr 0.8fr;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+
+    .report-card {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+
+    /* =========================================
+       BIỂU ĐỒ CỘT
+       ========================================= */
+
+    .chart-area {
+        height: 310px;
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        padding: 25px 10px 10px;
+        border-bottom: 1px solid #dddddd;
+        overflow-x: auto;
+    }
+
+    .chart-column {
+        min-width: 55px;
+        flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .chart-value {
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 5px;
+        white-space: nowrap;
+    }
+
+    .chart-bar {
+        width: 38px;
+        max-width: 80%;
+        background: #f97316;
+        border-radius: 7px 7px 0 0;
+        transition: 0.2s;
+    }
+
+    .chart-bar:hover {
+        opacity: 0.8;
+    }
+
+    .chart-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 7px;
+        white-space: nowrap;
+    }
+
+    .chart-empty {
+        width: 100%;
+        height: 250px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #888;
+    }
+
+
+    /* =========================================
+       TOP MÓN
+       ========================================= */
+
+    .food-ranking {
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+    }
+
+    .rank-item {
+        display: grid;
+        grid-template-columns: 32px 52px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .rank-number {
+        width: 27px;
+        height: 27px;
+        background: #fff7ed;
+        color: #ea580c;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+    }
+
+    .rank-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff7ed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .rank-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .rank-food-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .rank-food-info {
+        color: #777;
+        font-size: 13px;
+    }
+
+    .no-data {
+        color: #888;
+        padding: 30px 0;
+        text-align: center;
+    }
+
+
+    /* =========================================
+       BẢNG CHI TIẾT
+       ========================================= */
+
+    .daily-card {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .daily-header {
+        padding: 20px;
+    }
+
+    .daily-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .daily-table th {
+        background: #fafafa;
+        padding: 14px 18px;
+        text-align: left;
+        border-top: 1px solid #eeeeee;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .daily-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .daily-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-money {
+        color: #ea580c;
+        font-weight: 700;
+    }
+
+
+    @@media (max-width: 1100px) {
+
+        .summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .report-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+
+    @@media (max-width: 800px) {
+
+        .analysis-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+
+
+<div class="statistics-page">
+
+
+    <!-- =========================================
+         TIÊU ĐỀ
+         ========================================= -->
+
+    <div class="statistics-title">
+        Thống kê
+    </div>
+
+
+    <!-- =========================================
+         BỘ LỌC
+         ========================================= -->
+
+    <div class="filter-box">
+
+        <div class="filter-title">
+            Khoảng thời gian
+        </div>
+
+
+        <div class="quick-filter">
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="today"
+               class="filter-btn @(currentRange == "today" ? "active" : "")">
+
+                Hôm nay
+
+            </a>
+
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="7days"
+               class="filter-btn @(currentRange == "7days" ? "active" : "")">
+
+                7 ngày gần nhất
+
+            </a>
+
+
+            <a asp-controller="Statistics"
+               asp-action="Index"
+               asp-route-range="30days"
+               class="filter-btn @(currentRange == "30days" ? "active" : "")">
+
+                30 ngày gần nhất
+
+            </a>
+
+        </div>
+
+
+        <!-- TÙY CHỌN NGÀY -->
+
+        <form asp-controller="Statistics"
+              asp-action="Index"
+              method="get"
+              class="custom-filter">
+
+            <input type="hidden"
+                   name="range"
+                   value="custom" />
+
+
+            <div class="date-group">
+
+                <label>
+                    Từ ngày
+                </label>
+
+                <input type="date"
+                       name="fromDate"
+                       value="@Model.FromDate.ToString("yyyy-MM-dd")"
+                       class="date-input" />
+
+            </div>
+
+
+            <div class="date-group">
+
+                <label>
+                    Đến ngày
+                </label>
+
+                <input type="date"
+                       name="toDate"
+                       value="@Model.ToDate.ToString("yyyy-MM-dd")"
+                       class="date-input" />
+
+            </div>
+
+
+            <button type="submit"
+                    class="apply-btn">
+
+                Xem thống kê
+
+            </button>
+
+        </form>
+
+    </div>
+
+
+
+    <!-- =========================================
+         4 CHỈ SỐ CHÍNH
+         ========================================= -->
+
+    <div class="summary-grid">
+
+
+        <div class="summary-card">
+
+            <div class="summary-icon">
+                💰
+            </div>
+
+            <div class="summary-label">
+                Tổng doanh thu
+            </div>
+
+            <div class="summary-value revenue-value">
+
+                @Model.TotalRevenue.ToString("N0") đ
+
+            </div>
+
+        </div>
+
+
+
+        <div class="summary-card">
+
+            <div class="summary-icon">
+                🧾
+            </div>
+
+            <div class="summary-label">
+                Tổng hóa đơn
+            </div>
+
+            <div class="summary-value">
+
+                @Model.TotalInvoices
+
+            </div>
+
+        </div>
+
+
+
+        <div class="summary-card">
+
+            <div class="summary-icon">
+                🥖
+            </div>
+
+            <div class="summary-label">
+                Tổng món đã bán
+            </div>
+
+            <div class="summary-value">
+
+                @Model.TotalItemsSold
+
+            </div>
+
+        </div>
+
+
+
+        <div class="summary-card">
+
+            <div class="summary-icon">
+                📈
+            </div>
+
+            <div class="summary-label">
+                Trung bình / hóa đơn
+            </div>
+
+            <div class="summary-value">
+
+                @Model.AverageOrderValue.ToString("N0") đ
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================
+         HÌNH THỨC BÁN + THANH TOÁN
+         ========================================= -->
+
+    <div class="analysis-grid">
+
+
+        <!-- HÌNH THỨC BÁN -->
+
+        <div class="analysis-card">
+
+            <div class="card-title">
+                Hình thức bán hàng
+            </div>
+
+
+            <div class="analysis-row">
+
+                <div class="analysis-info">
+
+                    <div>
+
+                        <div class="analysis-name">
+                            🪑 Ăn tại quán
+                        </div>
+
+                        <small>
+                            @Model.DineInCount hóa đơn
+                        </small>
+
+                    </div>
+
+                    <div class="analysis-number">
+
+                        <strong>
+                            @Model.DineInRevenue.ToString("N0") đ
+                        </strong>
+
+                        <br />
+
+                        <small>
+                            @dineInPercent.ToString("N1")%
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="progress-background">
+
+                    <div class="progress-value"
+                         style="width:@dineInPercent.ToString("0.##")%">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="analysis-row">
+
+                <div class="analysis-info">
+
+                    <div>
+
+                        <div class="analysis-name">
+                            🥡 Mang đi
+                        </div>
+
+                        <small>
+                            @Model.TakeAwayCount hóa đơn
+                        </small>
+
+                    </div>
+
+                    <div class="analysis-number">
+
+                        <strong>
+                            @Model.TakeAwayRevenue.ToString("N0") đ
+                        </strong>
+
+                        <br />
+
+                        <small>
+                            @takeAwayPercent.ToString("N1")%
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="progress-background">
+
+                    <div class="progress-value"
+                         style="width:@takeAwayPercent.ToString("0.##")%">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PHƯƠNG THỨC THANH TOÁN -->
+
+        <div class="analysis-card">
+
+            <div class="card-title">
+                Phương thức thanh toán
+            </div>
+
+
+            <div class="analysis-row">
+
+                <div class="analysis-info">
+
+                    <div>
+
+                        <div class="analysis-name">
+                            💵 Tiền mặt
+                        </div>
+
+                        <small>
+                            @Model.CashCount hóa đơn
+                        </small>
+
+                    </div>
+
+                    <div class="analysis-number">
+
+                        <strong>
+                            @Model.CashRevenue.ToString("N0") đ
+                        </strong>
+
+                        <br />
+
+                        <small>
+                            @cashPercent.ToString("N1")%
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="progress-background">
+
+                    <div class="progress-value"
+                         style="width:@cashPercent.ToString("0.##")%">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="analysis-row">
+
+                <div class="analysis-info">
+
+                    <div>
+
+                        <div class="analysis-name">
+                            🏦 Chuyển khoản
+                        </div>
+
+                        <small>
+                            @Model.BankTransferCount hóa đơn
+                        </small>
+
+                    </div>
+
+                    <div class="analysis-number">
+
+                        <strong>
+                            @Model.BankTransferRevenue.ToString("N0") đ
+                        </strong>
+
+                        <br />
+
+                        <small>
+                            @bankPercent.ToString("N1")%
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="progress-background">
+
+                    <div class="progress-value"
+                         style="width:@bankPercent.ToString("0.##")%">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================
+         BIỂU ĐỒ + TOP 5
+         ========================================= -->
+
+    <div class="report-grid">
+
+
+        <!-- BIỂU ĐỒ DOANH THU -->
+
+        <div class="report-card">
+
+            <div class="card-title">
+                Doanh thu theo ngày
+            </div>
+
+
+            @if (Model.DailyStatistics.Count > 0)
+            {
+                <div class="chart-area">
+
+                    @foreach (var item in Model.DailyStatistics)
+                    {
+                        int barHeight = 0;
+
+                        if (maxRevenue > 0)
+                        {
+                            barHeight =
+                                (int)Math.Round(
+                                    (double)(item.Revenue / maxRevenue)
+                                    * 220
+                                );
+
+                            if (item.Revenue > 0 &&
+                                barHeight < 8)
+                            {
+                                barHeight = 8;
+                            }
+                        }
+
+
+                        <div class="chart-column">
+
+                            <div class="chart-value">
+
+                                @item.Revenue.ToString("N0")
+
+                            </div>
+
+                            <div class="chart-bar"
+                                 style="height:@(barHeight)px">
+                            </div>
+
+                            <div class="chart-label">
+
+                                @item.DateLabel
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="chart-empty">
+                    Chưa có dữ liệu doanh thu.
+                </div>
+            }
+
+        </div>
+
+
+
+        <!-- TOP 5 MÓN -->
+
+        <div class="report-card">
+
+            <div class="card-title">
+                Top 5 món bán chạy
+            </div>
+
+
+            @if (Model.TopFoods.Count == 0)
+            {
+                <div class="no-data">
+                    Chưa có dữ liệu.
+                </div>
+            }
+            else
+            {
+                <div class="food-ranking">
+
+                    @{
+                        int rank = 1;
+                    }
+
+
+                    @foreach (var food in Model.TopFoods)
+                    {
+                        <div class="rank-item">
+
+
+                            <div class="rank-number">
+                                @rank
+                            </div>
+
+
+                            <div class="rank-image">
+
+                                @if (!string.IsNullOrWhiteSpace(food.ImageUrl))
+                                {
+                                    <img src="@food.ImageUrl"
+                                         alt="@food.FoodName" />
+                                }
+                                else
+                                {
+                                    <span>
+                                        🥖
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="rank-food-name">
+
+                                    @food.FoodName
+
+                                </div>
+
+                                <div class="rank-food-info">
+
+                                    Đã bán:
+                                    <strong>
+                                        @food.Quantity
+                                    </strong>
+
+                                    <br />
+
+                                    Doanh thu:
+                                    <strong>
+                                        @food.Revenue.ToString("N0") đ
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        rank++;
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================
+         BẢNG CHI TIẾT THEO NGÀY
+         ========================================= -->
+
+    <div class="daily-card">
+
+
+        <div class="daily-header">
+
+            <div class="card-title"
+                 style="margin-bottom:0;">
+
+                Chi tiết doanh thu theo ngày
+
+            </div>
+
+        </div>
+
+
+        <table class="daily-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Ngày
+                    </th>
+
+                    <th>
+                        Số hóa đơn
+                    </th>
+
+                    <th>
+                        Số món bán
+                    </th>
+
+                    <th>
+                        Doanh thu
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                @foreach (var item in Model.DailyStatistics)
+                {
+                    <tr>
+
+                        <td>
+
+                            @item.Date.ToString("dd/MM/yyyy")
+
+                        </td>
+
+                        <td>
+
+                            @item.InvoiceCount
+
+                        </td>
+
+                        <td>
+
+                            @item.ItemsSold
+
+                        </td>
+
+                        <td class="table-money">
+
+                            @item.Revenue.ToString("N0") đ
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

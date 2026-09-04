@@ -1,0 +1,596 @@
+@model List<banhmihanhphuc.Models.Order>
+
+@{
+    ViewData["Title"] = "Hóa đơn";
+}
+
+<style>
+
+    /* =========================================
+       TRANG HÓA ĐƠN
+       ========================================= */
+
+    .invoice-page {
+        padding: 10px 0;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 22px;
+    }
+
+
+    /* =========================================
+       TÌM KIẾM + LỌC NGÀY
+       ========================================= */
+
+    .invoice-toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filter-group label {
+        font-size: 13px;
+        color: #666666;
+        font-weight: 500;
+    }
+
+    .search-input {
+        width: 280px;
+        height: 44px;
+        padding: 10px 14px;
+        border: 1px solid #dddddd;
+        border-radius: 9px;
+        outline: none;
+        font-size: 14px;
+        background: white;
+    }
+
+    .search-input:focus {
+        border-color: #f97316;
+    }
+
+    .date-input {
+        width: 175px;
+        height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #dddddd;
+        border-radius: 9px;
+        outline: none;
+        background: white;
+        font-size: 14px;
+    }
+
+    .date-input:focus {
+        border-color: #f97316;
+    }
+
+    .search-btn {
+        height: 44px;
+        border: none;
+        background: #333333;
+        color: white;
+        padding: 0 20px;
+        border-radius: 9px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .search-btn:hover {
+        background: #222222;
+    }
+
+    .reset-btn {
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dddddd;
+        background: white;
+        color: #555555;
+        padding: 0 18px;
+        border-radius: 9px;
+        text-decoration: none;
+    }
+
+    .reset-btn:hover {
+        color: #ea580c;
+        border-color: #f97316;
+    }
+
+
+    /* =========================================
+       KHUNG BẢNG
+       ========================================= */
+
+    .invoice-box {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .invoice-table th {
+        background: #fafafa;
+        padding: 15px;
+        text-align: left;
+        font-size: 14px;
+        border-bottom: 1px solid #eeeeee;
+        white-space: nowrap;
+    }
+
+    .invoice-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eeeeee;
+        vertical-align: middle;
+    }
+
+    .invoice-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .invoice-table tbody tr:hover {
+        background: #fffdfb;
+    }
+
+
+    /* =========================================
+       NỘI DUNG BẢNG
+       ========================================= */
+
+    .order-code {
+        font-weight: 700;
+    }
+
+    .money {
+        font-weight: 700;
+        color: #ea580c;
+        white-space: nowrap;
+    }
+
+    .paid-status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: #dcfce7;
+        color: #15803d;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+
+    /* =========================================
+       NÚT THAO TÁC
+       ========================================= */
+
+    .detail-btn {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 7px;
+        background: #fff7ed;
+        border: 1px solid #fdba74;
+        color: #ea580c;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .detail-btn:hover {
+        color: #c2410c;
+    }
+
+    .print-btn {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 7px;
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        color: #333333;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+
+    .print-btn:hover {
+        background: #e5e7eb;
+        color: #111111;
+    }
+
+
+    /* =========================================
+       KHÔNG CÓ DỮ LIỆU
+       ========================================= */
+
+    .empty-message {
+        padding: 45px;
+        text-align: center;
+        color: #777777;
+    }
+
+
+    /* =========================================
+       RESPONSIVE
+       ========================================= */
+
+    @@media (max-width: 900px) {
+
+        .search-input {
+            width: 220px;
+        }
+
+        .date-input {
+            width: 160px;
+        }
+
+        .invoice-box {
+            overflow-x: auto;
+        }
+
+        .invoice-table {
+            min-width: 1000px;
+        }
+    }
+
+</style>
+
+
+<div class="invoice-page">
+
+
+    <!-- =========================================
+         TIÊU ĐỀ
+         ========================================= -->
+
+    <div class="page-title">
+        Quản lý hóa đơn
+    </div>
+
+
+    <!-- =========================================
+         TÌM KIẾM + LỌC THEO NGÀY
+         ========================================= -->
+
+    <form method="get"
+          asp-controller="Invoices"
+          asp-action="Index"
+          class="invoice-toolbar">
+
+
+        <!-- MÃ HÓA ĐƠN -->
+
+        <div class="filter-group">
+
+            <label>
+                Mã hóa đơn
+            </label>
+
+            <input type="text"
+                   name="search"
+                   value="@ViewBag.Search"
+                   class="search-input"
+                   placeholder="VD: HD000028" />
+
+        </div>
+
+
+        <!-- TỪ NGÀY -->
+
+        <div class="filter-group">
+
+            <label>
+                Từ ngày
+            </label>
+
+            <input type="date"
+                   name="fromDate"
+                   value="@ViewBag.FromDate"
+                   class="date-input" />
+
+        </div>
+
+
+        <!-- ĐẾN NGÀY -->
+
+        <div class="filter-group">
+
+            <label>
+                Đến ngày
+            </label>
+
+            <input type="date"
+                   name="toDate"
+                   value="@ViewBag.ToDate"
+                   class="date-input" />
+
+        </div>
+
+
+        <!-- NÚT TÌM -->
+
+        <button type="submit"
+                class="search-btn">
+
+            Tìm kiếm
+
+        </button>
+
+
+        <!-- ĐẶT LẠI -->
+
+        <a asp-controller="Invoices"
+           asp-action="Index"
+           class="reset-btn">
+
+            Đặt lại
+
+        </a>
+
+    </form>
+
+
+
+    <!-- =========================================
+         DANH SÁCH HÓA ĐƠN
+         ========================================= -->
+
+    <div class="invoice-box">
+
+
+        @if (Model.Count == 0)
+        {
+            <div class="empty-message">
+
+                Không tìm thấy hóa đơn phù hợp.
+
+            </div>
+        }
+        else
+        {
+            <table class="invoice-table">
+
+
+                <!-- =========================================
+                     TIÊU ĐỀ CỘT
+                     ========================================= -->
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Mã hóa đơn
+                        </th>
+
+                        <th>
+                            Hình thức
+                        </th>
+
+                        <th>
+                            Bàn
+                        </th>
+
+                        <th>
+                            Thanh toán
+                        </th>
+
+                        <th>
+                            Thời gian
+                        </th>
+
+                        <th>
+                            Tổng tiền
+                        </th>
+
+                        <th>
+                            Trạng thái
+                        </th>
+
+                        <th>
+                            Thao tác
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <!-- =========================================
+                     DỮ LIỆU
+                     ========================================= -->
+
+                <tbody>
+
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+
+                            <!-- MÃ HÓA ĐƠN -->
+
+                            <td class="order-code">
+
+                                @item.OrderCode
+
+                            </td>
+
+
+                            <!-- HÌNH THỨC -->
+
+                            <td>
+
+                                @if (item.OrderType == "DineIn")
+                                {
+                                    <span>
+                                        Ăn tại quán
+                                    </span>
+                                }
+                                else if (item.OrderType == "TakeAway")
+                                {
+                                    <span>
+                                        Mang đi
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        @item.OrderType
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <!-- BÀN -->
+
+                            <td>
+
+                                @if (item.Table != null)
+                                {
+                                    @item.Table.TableName
+                                }
+                                else
+                                {
+                                    <span>
+                                        -
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <!-- PHƯƠNG THỨC THANH TOÁN -->
+
+                            <td>
+
+                                @if (item.Payment != null)
+                                {
+                                    if (item.Payment.PaymentMethod == "Cash")
+                                    {
+                                        <span>
+                                            Tiền mặt
+                                        </span>
+                                    }
+                                    else if (item.Payment.PaymentMethod == "BankTransfer")
+                                    {
+                                        <span>
+                                            Chuyển khoản
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>
+                                            @item.Payment.PaymentMethod
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span>
+                                        -
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <!-- THỜI GIAN THANH TOÁN -->
+
+                            <td>
+
+                                @if (item.PaidAt.HasValue)
+                                {
+                                    @item.PaidAt.Value.ToString(
+                                        "dd/MM/yyyy HH:mm"
+                                    )
+                                }
+                                else
+                                {
+                                    <span>
+                                        -
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <!-- TỔNG TIỀN -->
+
+                            <td class="money">
+
+                                @item.TotalAmount.ToString("N0") đ
+
+                            </td>
+
+
+                            <!-- TRẠNG THÁI -->
+
+                            <td>
+
+                                <span class="paid-status">
+
+                                    Đã thanh toán
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- THAO TÁC -->
+
+                            <td>
+
+
+                                <a asp-controller="Invoices"
+                                   asp-action="Details"
+                                   asp-route-id="@item.Id"
+                                   class="detail-btn">
+
+                                    Xem
+
+                                </a>
+
+
+                                <a asp-controller="Sales"
+                                   asp-action="Invoice"
+                                   asp-route-id="@item.Id"
+                                   target="_blank"
+                                   class="print-btn">
+
+                                    In lại
+
+                                </a>
+
+
+                            </td>
+
+                        </tr>
+                    }
+
+
+                </tbody>
+
+            </table>
+        }
+
+    </div>
+
+</div>

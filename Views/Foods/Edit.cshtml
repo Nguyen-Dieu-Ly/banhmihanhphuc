@@ -1,0 +1,350 @@
+@model banhmihanhphuc.Models.Food
+
+@{
+    ViewData["Title"] = "Sửa món";
+
+    var categories =
+        ViewBag.Categories as List<banhmihanhphuc.Models.Category>;
+}
+
+<style>
+    .food-form-page {
+        max-width: 720px;
+        margin: 35px auto;
+    }
+
+    .food-form-card {
+        background: white;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+    }
+
+    .food-form-card h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .form-description {
+        color: #777;
+        margin-bottom: 28px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #ddd;
+        border-radius: 9px;
+        font-size: 15px;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #f97316;
+        box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+    }
+
+    .status-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        background: #fafafa;
+        border: 1px solid #eee;
+        border-radius: 9px;
+    }
+
+    .status-box input {
+        width: 18px;
+        height: 18px;
+    }
+
+    .current-image {
+        margin-top: 12px;
+    }
+
+    .current-image img {
+        width: 180px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #eee;
+    }
+
+    .no-image {
+        width: 180px;
+        height: 130px;
+        background: #fff7ed;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 45px;
+    }
+
+    .image-preview {
+        display: none;
+        width: 180px;
+        height: 130px;
+        margin-top: 12px;
+        border: 1px dashed #ccc;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fafafa;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+    }
+
+    .btn-back,
+    .btn-save {
+        flex: 1;
+        padding: 12px;
+        border-radius: 9px;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        background: white;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+
+    .btn-save {
+        border: none;
+        background: #f97316;
+        color: white;
+        cursor: pointer;
+    }
+
+    .btn-save:hover {
+        background: #ea580c;
+    }
+</style>
+
+<div class="food-form-page">
+
+    <div class="food-form-card">
+
+        <h2>Sửa món ăn</h2>
+
+        <div class="form-description">
+            Cập nhật thông tin món ăn
+        </div>
+
+        <form asp-controller="Foods"
+              asp-action="Edit"
+              asp-route-id="@Model.Id"
+              method="post"
+              enctype="multipart/form-data">
+
+            @Html.AntiForgeryToken()
+
+            <input asp-for="Id" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3">
+            </div>
+
+            <!-- Tên món -->
+            <div class="form-group">
+
+                <label asp-for="Name">
+                    Tên món
+                </label>
+
+                <input asp-for="Name"
+                       class="form-control" />
+
+                <span asp-validation-for="Name"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+            <!-- Danh mục -->
+            <div class="form-group">
+
+                <label asp-for="CategoryId">
+                    Danh mục
+                </label>
+
+                <select asp-for="CategoryId"
+                        class="form-control">
+
+                    @if (categories != null)
+                    {
+                        foreach (var category in categories)
+                        {
+                            <option value="@category.Id">
+                                @category.Name
+                            </option>
+                        }
+                    }
+
+                </select>
+
+                <span asp-validation-for="CategoryId"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+            <!-- Giá bán -->
+            <div class="form-group">
+
+                <label asp-for="Price">
+                    Giá bán
+                </label>
+
+                <input asp-for="Price"
+                       type="number"
+                       min="0"
+                       class="form-control" />
+
+                <span asp-validation-for="Price"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+            <!-- Trạng thái -->
+            <div class="form-group">
+
+                <label>
+                    Trạng thái
+                </label>
+
+                <div class="status-box">
+
+                    <input asp-for="IsAvailable" />
+
+                    <label asp-for="IsAvailable"
+                           style="margin:0;">
+                        Đang bán
+                    </label>
+
+                </div>
+
+            </div>
+
+            <!-- Ảnh hiện tại -->
+            <div class="form-group">
+
+                <label>
+                    Ảnh hiện tại
+                </label>
+
+                <div class="current-image">
+
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl"
+                             alt="@Model.Name" />
+                    }
+                    else
+                    {
+                        <div class="no-image">
+                            🥖
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+            <!-- Chọn ảnh mới -->
+            <div class="form-group">
+
+                <label>
+                    Thay ảnh mới
+                </label>
+
+                <input type="file"
+                       name="imageFile"
+                       id="imageFile"
+                       accept=".jpg,.jpeg,.png,.webp"
+                       class="form-control" />
+
+                <div class="image-preview"
+                     id="imagePreview">
+
+                    <img id="previewImage"
+                         alt="Ảnh xem trước" />
+
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <a asp-controller="Foods"
+                   asp-action="Index"
+                   class="btn-back">
+
+                    ← Quay lại
+
+                </a>
+
+                <button type="submit"
+                        class="btn-save">
+
+                    Lưu thay đổi
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+    // Hiển thị ảnh mới để xem trước
+    document.getElementById("imageFile")
+        .addEventListener("change", function () {
+
+            const file = this.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                document.getElementById("previewImage")
+                    .src = e.target.result;
+
+                document.getElementById("imagePreview")
+                    .style.display = "block";
+            };
+
+            reader.readAsDataURL(file);
+        });
+</script>

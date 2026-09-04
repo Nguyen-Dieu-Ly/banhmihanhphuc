@@ -1,0 +1,493 @@
+@model banhmihanhphuc.Models.Order
+
+@{
+    ViewData["Title"] = "Chi tiết hóa đơn";
+}
+
+<style>
+    .detail-page {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .invoice-card {
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* =========================================
+       THÔNG TIN HÓA ĐƠN
+       ========================================= */
+
+    .invoice-header {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .info-item {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .info-label {
+        color: #666;
+    }
+
+    .info-value {
+        font-weight: 600;
+    }
+
+    .status-paid {
+        display: inline-block;
+        background: #dcfce7;
+        color: #15803d;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    /* =========================================
+       DANH SÁCH MÓN
+       ========================================= */
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 25px 0 12px;
+    }
+
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .detail-table th {
+        background: #fafafa;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .detail-table td {
+        padding: 13px 12px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .text-right {
+        text-align: right !important;
+    }
+
+    /* =========================================
+       TỔNG TIỀN
+       ========================================= */
+
+    .summary {
+        margin-top: 20px;
+        margin-left: auto;
+        width: 350px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 7px 0;
+    }
+
+    .total-row {
+        font-size: 21px;
+        font-weight: 700;
+        border-top: 1px solid #ddd;
+        margin-top: 5px;
+        padding-top: 13px;
+    }
+
+    .total-money {
+        color: #ea580c;
+    }
+
+    /* =========================================
+       NÚT THAO TÁC
+       ========================================= */
+
+    .actions {
+        margin-top: 25px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .back-btn {
+        padding: 10px 18px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #333;
+        background: white;
+    }
+
+    .print-btn {
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white;
+        background: #f97316;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 700px) {
+
+        .invoice-header {
+            grid-template-columns: 1fr;
+        }
+
+        .summary {
+            width: 100%;
+        }
+
+        .detail-table {
+            font-size: 14px;
+        }
+    }
+</style>
+
+
+<div class="detail-page">
+
+    <div class="page-title">
+        Chi tiết hóa đơn
+    </div>
+
+
+    <div class="invoice-card">
+
+        <!-- =========================================
+             THÔNG TIN HÓA ĐƠN
+             ========================================= -->
+
+        <div class="invoice-header">
+
+            <!-- Mã hóa đơn -->
+            <div class="info-item">
+
+                <span class="info-label">
+                    Mã hóa đơn:
+                </span>
+
+                <span class="info-value">
+                    @Model.OrderCode
+                </span>
+
+            </div>
+
+
+            <!-- Trạng thái -->
+            <div class="info-item">
+
+                <span class="info-label">
+                    Trạng thái:
+                </span>
+
+                <span class="status-paid">
+                    Đã thanh toán
+                </span>
+
+            </div>
+
+
+            <!-- Hình thức -->
+            <div class="info-item">
+
+                <span class="info-label">
+                    Hình thức:
+                </span>
+
+                <span class="info-value">
+
+                    @(Model.OrderType == "DineIn"
+                        ? "Ăn tại quán"
+                        : "Mang đi")
+
+                </span>
+
+            </div>
+
+
+            <!-- Bàn -->
+            <div class="info-item">
+
+                <span class="info-label">
+                    Bàn:
+                </span>
+
+                <span class="info-value">
+
+                    @(Model.Table != null
+                        ? Model.Table.TableName
+                        : "-")
+
+                </span>
+
+            </div>
+
+
+            <!-- Thời gian tạo đơn -->
+            <div class="info-item">
+
+                <span class="info-label">
+                    Thời gian tạo đơn:
+                </span>
+
+                <span class="info-value">
+
+                    @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+
+                </span>
+
+            </div>
+
+
+            <!-- Thời gian thanh toán -->
+            <div class="info-item">
+
+                <span class="info-label">
+                    Thanh toán lúc:
+                </span>
+
+                <span class="info-value">
+
+                    @if (Model.PaidAt.HasValue)
+                    {
+                        @Model.PaidAt.Value.ToString("dd/MM/yyyy HH:mm")
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+
+                </span>
+
+            </div>
+
+
+
+
+            <!-- Phương thức thanh toán -->
+            <div class="info-item">
+
+                <span class="info-label">
+                    Thanh toán:
+                </span>
+
+                <span class="info-value">
+
+                    @if (Model.Payment?.PaymentMethod == "Cash")
+                    {
+                        <span>Tiền mặt</span>
+                    }
+                    else if (Model.Payment?.PaymentMethod == "BankTransfer")
+                    {
+                        <span>Chuyển khoản</span>
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             DANH SÁCH MÓN ĐÃ GỌI
+             ========================================= -->
+
+        <div class="section-title">
+            Món đã gọi
+        </div>
+
+
+        <table class="detail-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        STT
+                    </th>
+
+                    <th>
+                        Tên món
+                    </th>
+
+                    <th>
+                        SL
+                    </th>
+
+                    <th class="text-right">
+                        Đơn giá
+                    </th>
+
+                    <th class="text-right">
+                        Thành tiền
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                @{
+                    int stt = 1;
+                }
+
+                @foreach (var detail in Model.OrderDetails)
+                {
+                    <tr>
+
+                        <!-- Số thứ tự -->
+                        <td>
+                            @stt
+                        </td>
+
+
+                        <!-- Tên món -->
+                        <td>
+
+                            @(detail.Food?.Name
+                                ?? "Món ăn")
+
+                        </td>
+
+
+                        <!-- Số lượng -->
+                        <td>
+                            @detail.Quantity
+                        </td>
+
+
+                        <!-- Đơn giá -->
+                        <td class="text-right">
+
+                            @detail.UnitPrice.ToString("N0") đ
+
+                        </td>
+
+
+                        <!-- Thành tiền -->
+                        <td class="text-right">
+
+                            @((detail.Quantity * detail.UnitPrice)
+                                .ToString("N0")) đ
+
+                        </td>
+
+                    </tr>
+
+                    stt++;
+                }
+
+            </tbody>
+
+        </table>
+
+
+        <!-- =========================================
+             TỔNG TIỀN
+             ========================================= -->
+
+        <div class="summary">
+
+            <div class="summary-row">
+
+                <span>
+                    Tạm tính:
+                </span>
+
+                <strong>
+                    @Model.Subtotal.ToString("N0") đ
+                </strong>
+
+            </div>
+
+
+            @if (Model.Discount > 0)
+            {
+                <div class="summary-row">
+
+                    <span>
+                        Giảm giá:
+                    </span>
+
+                    <strong>
+                        - @Model.Discount.ToString("N0") đ
+                    </strong>
+
+                </div>
+            }
+
+
+            <div class="summary-row total-row">
+
+                <span>
+                    Tổng tiền:
+                </span>
+
+                <span class="total-money">
+                    @Model.TotalAmount.ToString("N0") đ
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             NÚT THAO TÁC
+             ========================================= -->
+
+        <div class="actions">
+
+            <a asp-controller="Invoices"
+               asp-action="Index"
+               class="back-btn">
+
+                ← Quay lại
+
+            </a>
+
+
+            <a asp-controller="Sales"
+               asp-action="Invoice"
+               asp-route-id="@Model.Id"
+               target="_blank"
+               class="print-btn">
+
+                🖨 In hóa đơn
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

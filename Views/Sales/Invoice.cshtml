@@ -1,0 +1,461 @@
+@model banhmihanhphuc.Models.Order
+
+@{
+    ViewData["Title"] = "Hóa đơn";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html lang="vi">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@Model.OrderCode - Bánh Mì Hạnh Phúc</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system,
+                         BlinkMacSystemFont,
+                         "Segoe UI",
+                         Roboto,
+                         Arial,
+                         sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        .invoice-wrapper {
+            width: 420px;
+            margin: 30px auto;
+        }
+
+        .invoice {
+            background: white;
+            padding: 28px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+
+        .shop-name {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .invoice-name {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .divider {
+            border-top: 1px dashed #999;
+            margin: 18px 0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 7px;
+            font-size: 14px;
+        }
+
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items th {
+            text-align: left;
+            padding: 7px 2px;
+            font-size: 13px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .items td {
+            padding: 9px 2px;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .text-right {
+            text-align: right !important;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .total-row {
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .thank-you {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .print-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .print-btn,
+        .back-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .print-btn {
+            background: #f97316;
+            color: white;
+        }
+
+        .back-btn {
+            background: white;
+            border: 1px solid #ddd;
+        }
+
+
+        /* =============================
+           GIAO DIỆN KHI IN
+           ============================= */
+
+        @@media print {
+
+            body {
+                background: white;
+            }
+
+            .invoice-wrapper {
+                width: 100%;
+                margin: 0;
+            }
+
+            .invoice {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 5px;
+            }
+
+            .print-actions {
+                display: none;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="invoice-wrapper">
+
+
+    <div class="invoice">
+
+
+        <div class="shop-name">
+            BÁNH MÌ HẠNH PHÚC
+        </div>
+
+        <div class="invoice-name">
+            HÓA ĐƠN THANH TOÁN
+        </div>
+
+
+        <div class="divider"></div>
+
+
+        <div class="info-row">
+
+            <span>Mã hóa đơn:</span>
+
+            <strong>
+                @Model.OrderCode
+            </strong>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span>Hình thức:</span>
+
+            <strong>
+
+                @if (Model.OrderType == "DineIn")
+                {
+                    <text>Ăn tại quán</text>
+                }
+                else
+                {
+                    <text>Mang đi</text>
+                }
+
+            </strong>
+
+        </div>
+
+
+        @if (Model.OrderType == "DineIn" &&
+             Model.Table != null)
+        {
+            <div class="info-row">
+
+                <span>Bàn:</span>
+
+                <strong>
+                    @Model.Table.TableName
+                </strong>
+
+            </div>
+        }
+
+
+        <!-- Thời gian bắt đầu tạo đơn -->
+<div class="info-row">
+
+    <span>Bắt đầu tạo đơn:</span>
+
+    <strong>
+        @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+    </strong>
+
+</div>
+
+
+<!-- Thời gian thanh toán -->
+<div class="info-row">
+
+    <span>Thanh toán lúc:</span>
+
+    <strong>
+
+        @if (Model.PaidAt.HasValue)
+        {
+            @Model.PaidAt.Value.ToString("dd/MM/yyyy HH:mm")
+        }
+        else
+        {
+            <span>-</span>
+        }
+
+    </strong>
+
+</div>
+
+
+        <div class="info-row">
+
+            <span>Thanh toán:</span>
+
+            <strong>
+
+                @if (Model.Payment?.PaymentMethod == "Cash")
+                {
+                    <text>Tiền mặt</text>
+                }
+                else if (Model.Payment?.PaymentMethod == "BankTransfer")
+                {
+                    <text>Chuyển khoản</text>
+                }
+                else
+                {
+                    <text>Chưa xác định</text>
+                }
+
+            </strong>
+
+        </div>
+
+
+        <div class="divider"></div>
+
+
+        <table class="items">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Món
+                    </th>
+
+                    <th class="text-center">
+                        SL
+                    </th>
+
+                    <th class="text-right">
+                        Đơn giá
+                    </th>
+
+                    <th class="text-right">
+                        Thành tiền
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                @foreach (var item in Model.OrderDetails)
+                {
+                    <tr>
+
+                        <td>
+                            @item.Food?.Name
+                        </td>
+
+                        <td class="text-center">
+                            @item.Quantity
+                        </td>
+
+                        <td class="text-right">
+                            @item.UnitPrice.ToString("N0")
+                        </td>
+
+                        <td class="text-right">
+
+                            @{
+                                var itemTotal =
+                                    item.Quantity *
+                                    item.UnitPrice;
+                            }
+
+                            @itemTotal.ToString("N0")
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+
+        <div class="divider"></div>
+
+
+        <div class="summary-row">
+
+            <span>
+                Tạm tính:
+            </span>
+
+            <strong>
+                @Model.Subtotal.ToString("N0") đ
+            </strong>
+
+        </div>
+
+
+        @if (Model.Discount > 0)
+        {
+            <div class="summary-row">
+
+                <span>
+                    Giảm giá:
+                </span>
+
+                <strong>
+                    - @Model.Discount.ToString("N0") đ
+                </strong>
+
+            </div>
+        }
+
+
+        <div class="summary-row total-row">
+
+            <span>
+                TỔNG TIỀN:
+            </span>
+
+            <span>
+                @Model.TotalAmount.ToString("N0") đ
+            </span>
+
+        </div>
+
+
+        <div class="divider"></div>
+
+
+        <div class="thank-you">
+
+            Cảm ơn quý khách! ❤️
+
+            <br>
+
+            Hẹn gặp lại quý khách.
+
+        </div>
+
+
+    </div>
+
+
+   <a asp-controller="Sales"
+   asp-action="Index"
+   class="back-btn"
+   style="text-decoration:none; text-align:center;">
+
+    ← Quay lại bán hàng
+
+</a>
+
+        <button type="button"
+                class="print-btn"
+                onclick="window.print()">
+
+            🖨 In hóa đơn
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,84 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+    Layout = "_Layout";
+}
+
+<style>
+    .access-denied-page {
+        min-height: 75vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .access-denied-box {
+        width: 100%;
+        max-width: 520px;
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 16px;
+        padding: 45px 35px;
+        text-align: center;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    }
+
+    .access-icon {
+        font-size: 55px;
+        margin-bottom: 18px;
+    }
+
+    .access-title {
+        font-size: 27px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 10px;
+    }
+
+    .access-description {
+        color: #6b7280;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+
+    .back-btn {
+        display: inline-block;
+        padding: 11px 22px;
+        border-radius: 9px;
+        background: #ff6500;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .back-btn:hover {
+        background: #ea580c;
+        color: white;
+    }
+</style>
+
+<div class="access-denied-page">
+
+    <div class="access-denied-box">
+
+        <div class="access-icon">
+            🔒
+        </div>
+
+        <div class="access-title">
+            Không có quyền truy cập
+        </div>
+
+        <div class="access-description">
+            Tài khoản của bạn không có quyền sử dụng chức năng này.
+            Vui lòng quay lại trang Tổng quan.
+        </div>
+
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="back-btn">
+            Quay lại Tổng quan
+        </a>
+
+    </div>
+
+</div>

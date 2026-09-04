@@ -1,0 +1,155 @@
+@model banhmihanhphuc.Models.RestaurantTable
+
+@{
+    ViewData["Title"] = "Thêm bàn";
+}
+
+<div class="table-form-page">
+
+    <div class="table-form-card">
+
+        <h2>Thêm bàn mới</h2>
+
+        <p class="form-description">
+            Nhập thông tin bàn mới cho cửa hàng
+        </p>
+
+        <form asp-action="Create" method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3">
+            </div>
+
+            <div class="form-group">
+                <label asp-for="TableName">Tên bàn</label>
+
+                <input asp-for="TableName"
+                       class="form-control"
+                       placeholder="Ví dụ: Bàn 13" />
+
+                <span asp-validation-for="TableName"
+                      class="text-danger">
+                </span>
+            </div>
+
+
+            <div class="form-group">
+                <label asp-for="Capacity">Sức chứa</label>
+
+                <input asp-for="Capacity"
+                       type="number"
+                       min="1"
+                       class="form-control" />
+
+                <span asp-validation-for="Capacity"
+                      class="text-danger">
+                </span>
+            </div>
+
+
+            <div class="form-actions">
+
+                <a asp-action="Index"
+                   class="btn-cancel">
+                    ← Quay lại
+                </a>
+
+                <button type="submit"
+                        class="btn-save">
+                    + Thêm bàn
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    .table-form-page {
+        max-width: 650px;
+        margin: 40px auto;
+    }
+
+    .table-form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    }
+
+    .table-form-card h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .form-description {
+        color: #777;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 22px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #ddd;
+        border-radius: 9px;
+        font-size: 16px;
+    }
+
+    .form-control:focus {
+        border-color: #ff6b00;
+        box-shadow: 0 0 0 3px rgba(255,107,0,0.1);
+        outline: none;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+    }
+
+    .btn-cancel,
+    .btn-save {
+        flex: 1;
+        padding: 12px;
+        border-radius: 9px;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: white;
+        border: 1px solid #ddd;
+        color: #333;
+    }
+
+    .btn-save {
+        border: none;
+        background: #ff6b00;
+        color: white;
+    }
+
+    .btn-save:hover {
+        background: #e85f00;
+    }
+
+</style>
