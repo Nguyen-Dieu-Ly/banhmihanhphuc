@@ -51,14 +51,18 @@ builder.Services
         CookieAuthenticationDefaults.AuthenticationScheme
     )
     .AddCookie(options =>
-    {
-        options.LoginPath =
-            "/Account/Login";
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
 
-        options.AccessDeniedPath =
-            "/Account/AccessDenied";
-    });
+    // Cấu hình cookie khi chạy HTTPS trên Render
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.SlidingExpiration = true;
+});
 
 builder.Services.AddAuthorization();
 
