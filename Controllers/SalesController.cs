@@ -42,6 +42,7 @@ namespace banhmihanhphuc.Controllers
         // LẤY HOẶC TẠO HÓA ĐƠN ĐANG MỞ CỦA MỘT BÀN
         // =====================================================
 
+// Lấy đơn đang mở của bàn được chọn
         [HttpGet]
         public async Task<IActionResult> GetTableOrder(int tableId)
 {
@@ -163,7 +164,7 @@ if (table.Status != "Serving")
 // THÊM MÓN VÀO HÓA ĐƠN
 // Chỉ khi chọn món đầu tiên mới tạo hóa đơn cho bàn
 // =====================================================
-
+// Thêm món vào đơn ăn tại quán
 [HttpPost]
 public async Task<IActionResult> AddItem(
     int? orderId,
@@ -445,7 +446,7 @@ await _context.SaveChangesAsync();
         }
 
         // =====================================================
-// THANH TOÁN HÓA ĐƠN ĂN TẠI QUÁN
+        // THANH TOÁN HÓA ĐƠN ĂN TẠI QUÁN
 // =====================================================
 
 [HttpPost]
