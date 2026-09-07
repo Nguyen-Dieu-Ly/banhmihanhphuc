@@ -18,7 +18,7 @@
 
     <title>@Model.OrderCode - Bánh Mì Hạnh Phúc</title>
 
-
+@* Giao diện hóa đơn thanh toán *@
     <style>
 
         * {
@@ -182,12 +182,13 @@
 <body>
 
 
+@* Khu vực hiển thị nội dung hóa đơn *@
 <div class="invoice-wrapper">
 
 
     <div class="invoice">
 
-
+@* Thông tin tiêu đề hóa đơn *@
         <div class="shop-name">
             BÁNH MÌ HẠNH PHÚC
         </div>
@@ -199,7 +200,7 @@
 
         <div class="divider"></div>
 
-
+@* Hiển thị mã hóa đơn *@
         <div class="info-row">
 
             <span>Mã hóa đơn:</span>
@@ -210,7 +211,7 @@
 
         </div>
 
-
+@* Hiển thị hình thức phục vụ của đơn hàng *@
         <div class="info-row">
 
             <span>Hình thức:</span>
@@ -231,9 +232,12 @@
         </div>
 
 
-        @if (Model.OrderType == "DineIn" &&
-             Model.Table != null)
+       @* Hiển thị bàn đối với đơn ăn tại quán *@
+     @if (Model.OrderType == "DineIn" &&
+     Model.Table != null)
+       
         {
+@* Hiển thị thời gian bắt đầu tạo đơn *@
             <div class="info-row">
 
                 <span>Bàn:</span>

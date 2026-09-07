@@ -56,23 +56,28 @@
     }
 </style>
 
+@* Khu vực hiển thị thông báo từ chối truy cập *@
 <div class="access-denied-page">
 
     <div class="access-denied-box">
 
+@* Biểu tượng khóa cảnh báo quyền truy cập *@
         <div class="access-icon">
             🔒
         </div>
 
+@* Tiêu đề thông báo quyền truy cập *@
         <div class="access-title">
             Không có quyền truy cập
         </div>
 
+@* Nội dung giải thích lý do không thể truy cập *@
         <div class="access-description">
             Tài khoản của bạn không có quyền sử dụng chức năng này.
             Vui lòng quay lại trang Tổng quan.
         </div>
 
+@* Quay lại trang Tổng quan *@
         <a asp-controller="Home"
            asp-action="Index"
            class="back-btn">
