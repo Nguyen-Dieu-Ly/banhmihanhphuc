@@ -24,6 +24,7 @@ namespace banhmihanhphuc.Controllers
         }
 
         [HttpPost]
+        // Xử lý đăng nhập và tạo Claims theo vai trò người dùng
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
