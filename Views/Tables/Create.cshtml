@@ -4,6 +4,7 @@
     ViewData["Title"] = "Thêm bàn";
 }
 
+@* Trang thêm bàn mới *@
 <div class="table-form-page">
 
     <div class="table-form-card">
@@ -14,6 +15,7 @@
             Nhập thông tin bàn mới cho cửa hàng
         </p>
 
+@* Form nhập thông tin bàn mới *@
         <form asp-action="Create" method="post">
 
             @Html.AntiForgeryToken()
@@ -22,6 +24,7 @@
                  class="text-danger mb-3">
             </div>
 
+@* Nhập tên bàn *@
             <div class="form-group">
                 <label asp-for="TableName">Tên bàn</label>
 
@@ -34,7 +37,7 @@
                 </span>
             </div>
 
-
+@* Nhập sức chứa của bàn *@
             <div class="form-group">
                 <label asp-for="Capacity">Sức chứa</label>
 
@@ -48,7 +51,7 @@
                 </span>
             </div>
 
-
+@* Các nút quay lại và thêm bàn *@
             <div class="form-actions">
 
                 <a asp-action="Index"
@@ -69,7 +72,7 @@
 
 </div>
 
-
+@* Giao diện trang thêm bàn *@
 <style>
 
     .table-form-page {

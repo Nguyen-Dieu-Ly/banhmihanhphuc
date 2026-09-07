@@ -4,6 +4,7 @@
     ViewData["Title"] = "Sửa bàn";
 }
 
+@* Trang chỉnh sửa thông tin bàn *@
 <div class="table-form-page">
 
     <div class="table-form-card">
@@ -14,6 +15,7 @@
             Cập nhật tên bàn và sức chứa
         </p>
 
+@* Form cập nhật thông tin bàn *@
         <form asp-action="Edit" method="post">
 
             @Html.AntiForgeryToken()
@@ -24,6 +26,7 @@
                  class="text-danger mb-3">
             </div>
 
+           @* Cập nhật tên bàn *@
             <div class="form-group">
 
                 <label asp-for="TableName">
@@ -39,7 +42,7 @@
 
             </div>
 
-
+@* Cập nhật sức chứa của bàn *@
             <div class="form-group">
 
                 <label asp-for="Capacity">
@@ -57,7 +60,7 @@
 
             </div>
 
-
+@* Các nút quay lại và lưu thay đổi *@
             <div class="form-actions">
 
                 <a asp-action="Index"
@@ -78,7 +81,7 @@
 
 </div>
 
-
+@* Giao diện trang chỉnh sửa bàn *@
 <style>
 
     .table-form-page {

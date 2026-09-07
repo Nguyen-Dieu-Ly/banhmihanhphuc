@@ -106,7 +106,7 @@
     }
 </style>
 
-
+@* Trang thêm món ăn mới *@
 <div class="food-form-page">
 
     <div class="food-form-card">
@@ -117,7 +117,7 @@
             Nhập thông tin món ăn mới của Bánh Mì Hạnh Phúc
         </div>
 
-
+@* Form nhập thông tin món ăn mới *@
         <form asp-controller="Foods"
               asp-action="Create"
               method="post"
@@ -129,7 +129,7 @@
                  class="text-danger mb-3">
             </div>
 
-
+@* Nhập tên món ăn *@
             <!-- Tên món -->
             <div class="form-group">
 
@@ -147,7 +147,7 @@
 
             </div>
 
-
+@* Chọn danh mục cho món ăn *@
             <!-- Danh mục -->
             <div class="form-group">
 
@@ -180,7 +180,7 @@
 
             </div>
 
-
+@* Nhập giá bán của món ăn *@
             <!-- Giá bán -->
             <div class="form-group">
 
@@ -200,7 +200,7 @@
 
             </div>
 
-
+@* Chọn ảnh đại diện cho món ăn *@
             <!-- Ảnh món -->
             <div class="form-group">
 
@@ -224,7 +224,7 @@
 
             </div>
 
-
+@* Các nút quay lại và thêm món *@
             <div class="form-actions">
 
                 <a asp-controller="Foods"
@@ -250,7 +250,7 @@
 
 </div>
 
-
+@* Xem trước ảnh món trước khi lưu *@
 <script>
     // Hiển thị ảnh xem trước khi lưu món
     document.getElementById("imageFile")

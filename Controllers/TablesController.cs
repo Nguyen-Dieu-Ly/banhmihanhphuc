@@ -18,7 +18,7 @@ namespace banhmihanhphuc.Controllers
         }
 
         // =========================================
-        // HIỂN THỊ DANH SÁCH BÀN
+        // Hiển thị danh sách bàn trong cửa hàng
         // =========================================
         public async Task<IActionResult> Index()
         {
@@ -176,7 +176,7 @@ namespace banhmihanhphuc.Controllers
 
 
         // =========================================
-        // XÓA BÀN
+       // Xử lý xóa bàn
         // =========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
