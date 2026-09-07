@@ -20,7 +20,7 @@ namespace banhmihanhphuc.Controllers
 
 
         // =========================================
-        // HIỂN THỊ DANH SÁCH MÓN ĂN
+        // // Hiển thị danh sách món ăn và xử lý tìm kiếm
         // =========================================
         public async Task<IActionResult> Index(
             string? search,
@@ -66,7 +66,7 @@ namespace banhmihanhphuc.Controllers
 
 
         // =========================================
-        // HIỂN THỊ TRANG THÊM MÓN
+        // // Thêm món ăn mới vào hệ thống
         // =========================================
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -155,7 +155,7 @@ namespace banhmihanhphuc.Controllers
 
 
                 // =========================================
-                // TẠO THƯ MỤC LƯU ẢNH
+                //  NƠI TẠO THƯ MỤC LƯU ẢNH
                 // =========================================
                 var folderPath =
                     Path.Combine(
@@ -436,7 +436,7 @@ public async Task<IActionResult> Delete(int id)
 
 
 // =========================================
-// XỬ LÝ XÓA MÓN
+// Xử lý xóa hoặc ngừng bán món ăn
 // =========================================
 [HttpPost]
 [ValidateAntiForgeryToken]

@@ -79,10 +79,12 @@
     }
 </style>
 
+@* Trang xác nhận xóa món ăn *@
 <div class="delete-page">
 
     <div class="delete-card">
 
+@* Biểu tượng cảnh báo xóa *@
         <div class="delete-icon">
             🗑️
         </div>
@@ -94,6 +96,7 @@
             <strong>@Model.Name</strong> không?
         </p>
 
+@* Hiển thị thông tin món trước khi xóa *@
         <div class="food-info">
 
             <div>
@@ -119,6 +122,7 @@
 
         </div>
 
+@* Gửi yêu cầu xác nhận xóa món *@
         <form asp-controller="Foods"
               asp-action="DeleteConfirmed"
               method="post">
@@ -129,6 +133,7 @@
                    name="id"
                    value="@Model.Id" />
 
+@* Các nút hủy và xác nhận xóa *@
             <div class="delete-actions">
 
                 <a asp-controller="Foods"

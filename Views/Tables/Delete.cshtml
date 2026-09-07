@@ -4,10 +4,12 @@
     ViewData["Title"] = "Xóa bàn";
 }
 
+@* Trang xác nhận xóa bàn *@
 <div class="delete-page">
 
     <div class="delete-card">
 
+@* Biểu tượng cảnh báo thao tác xóa *@
         <div class="delete-icon">
             🗑️
         </div>
@@ -19,6 +21,7 @@
             <strong>@Model.TableName</strong> không?
         </p>
 
+@* Hiển thị thông tin bàn trước khi xác nhận xóa *@
         <div class="table-info">
 
             <div>
@@ -33,7 +36,7 @@
 
         </div>
 
-
+@* Gửi yêu cầu xác nhận xóa bàn *@
         <form asp-action="DeleteConfirmed"
               method="post">
 
@@ -43,7 +46,8 @@
                    name="id"
                    value="@Model.Id" />
 
-            <div class="delete-actions">
+            @* Các nút hủy và xác nhận xóa bàn *@
+<div class="delete-actions">
 
                 <a asp-action="Index"
                    class="btn-cancel">
@@ -63,7 +67,7 @@
 
 </div>
 
-
+@* Giao diện trang xác nhận xóa bàn *@
 <style>
 
     .delete-page {
