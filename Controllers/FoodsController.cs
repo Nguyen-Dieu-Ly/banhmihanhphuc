@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using banhmihanhphuc.Data;
 using banhmihanhphuc.Models;
-using System.IO;
+using System.Net.Http.Headers;
 
 namespace banhmihanhphuc.Controllers
 {
@@ -11,16 +11,20 @@ namespace banhmihanhphuc.Controllers
     public class FoodsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        // Kết nối với cơ sở dữ liệu
-        public FoodsController(AppDbContext context)
+        // Kết nối cơ sở dữ liệu và cấu hình Supabase
+        public FoodsController(
+            AppDbContext context,
+            IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
 
         // =========================================
-        // // Hiển thị danh sách món ăn và xử lý tìm kiếm
+        // HIỂN THỊ DANH SÁCH MÓN ĂN
         // =========================================
         public async Task<IActionResult> Index(
             string? search,
@@ -30,7 +34,7 @@ namespace banhmihanhphuc.Controllers
                 .Include(f => f.Category)
                 .AsQueryable();
 
-            // Tìm kiếm món ăn theo tên
+            // Tìm kiếm món theo tên
             if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(f =>
@@ -52,7 +56,6 @@ namespace banhmihanhphuc.Controllers
                 .ThenBy(f => f.Name)
                 .ToListAsync();
 
-            // Lấy danh mục để hiển thị ở bộ lọc
             ViewBag.Categories =
                 await _context.Categories
                     .OrderBy(c => c.Name)
@@ -66,12 +69,11 @@ namespace banhmihanhphuc.Controllers
 
 
         // =========================================
-        // // Thêm món ăn mới vào hệ thống
+        // HIỂN THỊ TRANG THÊM MÓN
         // =========================================
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            // Lấy danh sách danh mục
             ViewBag.Categories =
                 await _context.Categories
                     .OrderBy(c => c.Name)
@@ -90,20 +92,17 @@ namespace banhmihanhphuc.Controllers
             Food model,
             IFormFile? imageFile)
         {
-            // Lấy lại danh mục để nếu có lỗi
-            // thì form vẫn hiển thị danh sách danh mục
             ViewBag.Categories =
                 await _context.Categories
                     .OrderBy(c => c.Name)
                     .ToListAsync();
 
 
-            // =========================================
-            // KIỂM TRA TÊN MÓN
-            // =========================================
+            // Kiểm tra tên món bị trùng
             var existed = await _context.Foods
-                .AnyAsync(f => f.Name.ToLower()
-                    == model.Name.ToLower());
+                .AnyAsync(f =>
+                    f.Name.ToLower() ==
+                    model.Name.ToLower());
 
             if (existed)
             {
@@ -114,7 +113,6 @@ namespace banhmihanhphuc.Controllers
             }
 
 
-            // Nếu dữ liệu không hợp lệ
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -122,361 +120,369 @@ namespace banhmihanhphuc.Controllers
 
 
             // =========================================
-            // XỬ LÝ ẢNH MÓN ĂN
+            // UPLOAD ẢNH LÊN SUPABASE STORAGE
             // =========================================
             if (imageFile != null &&
                 imageFile.Length > 0)
             {
-                // Lấy đuôi file ảnh
-                var extension =
-                    Path.GetExtension(
-                        imageFile.FileName
-                    ).ToLower();
+                var imageUrl =
+                    await UploadImageToSupabase(imageFile);
 
-                // Các định dạng ảnh cho phép
-                var allowedExtensions =
-                    new[]
-                    {
-                        ".jpg",
-                        ".jpeg",
-                        ".png",
-                        ".webp"
-                    };
-
-                if (!allowedExtensions.Contains(extension))
+                if (imageUrl == null)
                 {
                     ModelState.AddModelError(
                         "",
-                        "Ảnh chỉ được dùng JPG, JPEG, PNG hoặc WEBP."
+                        "Không thể tải ảnh lên Supabase."
                     );
 
                     return View(model);
                 }
 
-
-                // =========================================
-                //  NƠI TẠO THƯ MỤC LƯU ẢNH
-                // =========================================
-                var folderPath =
-                    Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot",
-                        "images",
-                        "foods"
-                    );
-
-                // Nếu thư mục chưa tồn tại thì tự tạo
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(
-                        folderPath
-                    );
-                }
-
-
-                // =========================================
-                // TẠO TÊN FILE ẢNH KHÔNG BỊ TRÙNG
-                // =========================================
-                var fileName =
-                    Guid.NewGuid()
-                        .ToString("N")
-                    + extension;
-
-
-                var filePath =
-                    Path.Combine(
-                        folderPath,
-                        fileName
-                    );
-
-
-                // =========================================
-                // LƯU ẢNH VÀO WWWROOT
-                // =========================================
-                using (var stream =
-                       new FileStream(
-                           filePath,
-                           FileMode.Create))
-                {
-                    await imageFile
-                        .CopyToAsync(stream);
-                }
-
-
-                // =========================================
-                // LƯU ĐƯỜNG DẪN ẢNH VÀO DATABASE
-                // =========================================
-                model.ImageUrl =
-                    "/images/foods/"
-                    + fileName;
+                model.ImageUrl = imageUrl;
             }
 
 
-            // =========================================
-            // TRẠNG THÁI MÓN
-            // =========================================
-
-            // Món mới mặc định được bán
+            // Món mới mặc định đang bán
             model.IsAvailable = true;
 
 
-            // =========================================
-            // LƯU VÀO DATABASE
-            // =========================================
             _context.Foods.Add(model);
 
             await _context.SaveChangesAsync();
 
 
-            // Sau khi thêm xong quay về danh sách món
-            return RedirectToAction(
-                nameof(Index)
-            );
+            return RedirectToAction(nameof(Index));
         }
-    // =========================================
-// HIỂN THỊ TRANG SỬA MÓN
-// =========================================
-[HttpGet]
-public async Task<IActionResult> Edit(int id)
-{
-    // Tìm món cần sửa
-    var food = await _context.Foods
-        .FirstOrDefaultAsync(f => f.Id == id);
-
-    if (food == null)
-    {
-        return NotFound();
-    }
-
-    // Lấy danh sách danh mục
-    ViewBag.Categories = await _context.Categories
-        .OrderBy(c => c.Name)
-        .ToListAsync();
-
-    return View(food);
-}
 
 
-// =========================================
-// LƯU THÔNG TIN MÓN SAU KHI SỬA
-// =========================================
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Edit(
-    int id,
-    Food model,
-    IFormFile? imageFile)
-{
-    // Tìm món hiện tại trong database
-    var food = await _context.Foods
-        .FirstOrDefaultAsync(f => f.Id == id);
+        // =========================================
+        // HIỂN THỊ TRANG SỬA MÓN
+        // =========================================
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var food = await _context.Foods
+                .FirstOrDefaultAsync(f => f.Id == id);
 
-    if (food == null)
-    {
-        return NotFound();
-    }
-
-
-    // Lấy danh mục để hiển thị lại nếu có lỗi
-    ViewBag.Categories = await _context.Categories
-        .OrderBy(c => c.Name)
-        .ToListAsync();
-
-
-    // Kiểm tra tên món có bị trùng với món khác không
-    var existed = await _context.Foods
-        .AnyAsync(f =>
-            f.Id != id &&
-            f.Name.ToLower() == model.Name.ToLower()
-        );
-
-    if (existed)
-    {
-        ModelState.AddModelError(
-            "Name",
-            "Tên món này đã tồn tại."
-        );
-    }
-
-
-    if (!ModelState.IsValid)
-    {
-        // Giữ lại ảnh cũ khi form có lỗi
-        model.ImageUrl = food.ImageUrl;
-
-        return View(model);
-    }
-
-
-    // =========================================
-    // CẬP NHẬT THÔNG TIN
-    // =========================================
-
-    food.Name = model.Name;
-
-    food.CategoryId = model.CategoryId;
-
-    food.Price = model.Price;
-
-    food.IsAvailable = model.IsAvailable;
-
-
-    // =========================================
-    // NẾU NGƯỜI DÙNG CHỌN ẢNH MỚI
-    // =========================================
-    if (imageFile != null &&
-        imageFile.Length > 0)
-    {
-        var extension =
-            Path.GetExtension(
-                imageFile.FileName
-            ).ToLower();
-
-
-        var allowedExtensions =
-            new[]
+            if (food == null)
             {
-                ".jpg",
-                ".jpeg",
-                ".png",
-                ".webp"
-            };
+                return NotFound();
+            }
 
+            ViewBag.Categories =
+                await _context.Categories
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
 
-        if (!allowedExtensions.Contains(extension))
-        {
-            ModelState.AddModelError(
-                "",
-                "Ảnh chỉ được dùng JPG, JPEG, PNG hoặc WEBP."
-            );
-
-            model.ImageUrl = food.ImageUrl;
-
-            return View(model);
+            return View(food);
         }
 
 
-        // Thư mục chứa ảnh món
-        var folderPath =
-            Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "wwwroot",
-                "images",
-                "foods"
-            );
-
-
-        if (!Directory.Exists(folderPath))
+        // =========================================
+        // LƯU THÔNG TIN MÓN SAU KHI SỬA
+        // =========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(
+            int id,
+            Food model,
+            IFormFile? imageFile)
         {
-            Directory.CreateDirectory(
-                folderPath
-            );
+            var food = await _context.Foods
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (food == null)
+            {
+                return NotFound();
+            }
+
+
+            ViewBag.Categories =
+                await _context.Categories
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
+
+
+            // Kiểm tra tên món có bị trùng
+            var existed = await _context.Foods
+                .AnyAsync(f =>
+                    f.Id != id &&
+                    f.Name.ToLower() ==
+                    model.Name.ToLower()
+                );
+
+            if (existed)
+            {
+                ModelState.AddModelError(
+                    "Name",
+                    "Tên món này đã tồn tại."
+                );
+            }
+
+
+            if (!ModelState.IsValid)
+            {
+                model.ImageUrl = food.ImageUrl;
+
+                return View(model);
+            }
+
+
+            // =========================================
+            // CẬP NHẬT THÔNG TIN MÓN
+            // =========================================
+            food.Name = model.Name;
+
+            food.CategoryId = model.CategoryId;
+
+            food.Price = model.Price;
+
+            food.IsAvailable = model.IsAvailable;
+
+
+            // =========================================
+            // NẾU CHỌN ẢNH MỚI
+            // =========================================
+            if (imageFile != null &&
+                imageFile.Length > 0)
+            {
+                var imageUrl =
+                    await UploadImageToSupabase(imageFile);
+
+                if (imageUrl == null)
+                {
+                    ModelState.AddModelError(
+                        "",
+                        "Không thể tải ảnh lên Supabase."
+                    );
+
+                    model.ImageUrl = food.ImageUrl;
+
+                    return View(model);
+                }
+
+
+                // Lưu URL ảnh mới
+                food.ImageUrl = imageUrl;
+            }
+
+
+            await _context.SaveChangesAsync();
+
+
+            return RedirectToAction(nameof(Index));
         }
 
 
-        // Tạo tên ảnh mới
-        var fileName =
-            Guid.NewGuid().ToString("N")
-            + extension;
-
-
-        var filePath =
-            Path.Combine(
-                folderPath,
-                fileName
-            );
-
-
-        // Lưu ảnh mới
-        using (var stream =
-               new FileStream(
-                   filePath,
-                   FileMode.Create))
+        // =========================================
+        // HIỂN THỊ XÁC NHẬN XÓA MÓN
+        // =========================================
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
         {
-            await imageFile
-                .CopyToAsync(stream);
+            var food = await _context.Foods
+                .Include(f => f.Category)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (food == null)
+            {
+                return NotFound();
+            }
+
+            return View(food);
         }
 
 
-        // Lưu đường dẫn ảnh mới
-        food.ImageUrl =
-            "/images/foods/" +
-            fileName;
+        // =========================================
+        // XỬ LÝ XÓA HOẶC NGỪNG BÁN MÓN
+        // =========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var food = await _context.Foods
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (food == null)
+            {
+                return NotFound();
+            }
+
+
+            var hasOrderDetails =
+                await _context.OrderDetails
+                    .AnyAsync(od =>
+                        od.FoodId == id);
+
+
+            if (hasOrderDetails)
+            {
+                // Đã có lịch sử hóa đơn
+                // nên chỉ chuyển sang ngừng bán
+                food.IsAvailable = false;
+
+                await _context.SaveChangesAsync();
+
+                TempData["Message"] =
+                    "Món đã có trong lịch sử hóa đơn nên hệ thống chuyển sang trạng thái Ngừng bán.";
+            }
+            else
+            {
+                // Chưa có hóa đơn thì xóa hẳn
+                _context.Foods.Remove(food);
+
+                await _context.SaveChangesAsync();
+
+                TempData["Message"] =
+                    "Đã xóa món thành công.";
+            }
+
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        // =========================================
+        // UPLOAD ẢNH LÊN SUPABASE STORAGE
+        // =========================================
+        private async Task<string?> UploadImageToSupabase(
+            IFormFile imageFile)
+        {
+            // Kiểm tra đuôi ảnh
+            var extension =
+                Path.GetExtension(
+                    imageFile.FileName
+                ).ToLowerInvariant();
+
+
+            var allowedExtensions =
+                new[]
+                {
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".webp"
+                };
+
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                return null;
+            }
+
+
+            // Lấy cấu hình từ Render Environment
+            var supabaseUrl =
+                _configuration["Supabase:Url"];
+
+            var serviceKey =
+                _configuration["Supabase:ServiceKey"];
+
+
+            if (string.IsNullOrWhiteSpace(supabaseUrl) ||
+                string.IsNullOrWhiteSpace(serviceKey))
+            {
+                return null;
+            }
+
+
+            // Tạo tên ảnh không bị trùng
+            var fileName =
+                Guid.NewGuid()
+                    .ToString("N")
+                + extension;
+
+
+            // Bucket đã tạo trên Supabase
+            const string bucketName =
+                "food-images";
+
+
+            var uploadUrl =
+                $"{supabaseUrl.TrimEnd('/')}" +
+                $"/storage/v1/object/" +
+                $"{bucketName}/" +
+                $"{fileName}";
+
+
+            using var httpClient =
+                new HttpClient();
+
+
+            // Quyền truy cập Supabase
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue(
+                    "Bearer",
+                    serviceKey
+                );
+
+
+            httpClient.DefaultRequestHeaders.Add(
+                "apikey",
+                serviceKey
+            );
+
+
+            // Đọc file ảnh
+            using var stream =
+                imageFile.OpenReadStream();
+
+
+            using var content =
+                new StreamContent(stream);
+
+
+            content.Headers.ContentType =
+                new MediaTypeHeaderValue(
+                    imageFile.ContentType
+                );
+
+
+            // Cho phép ghi file lên Storage
+            using var request =
+                new HttpRequestMessage(
+                    HttpMethod.Post,
+                    uploadUrl
+                );
+
+
+            request.Headers.Add(
+                "x-upsert",
+                "true"
+            );
+
+
+            request.Content = content;
+
+
+            var response =
+                await httpClient.SendAsync(request);
+
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error =
+                    await response.Content
+                        .ReadAsStringAsync();
+
+                Console.WriteLine(
+                    "Supabase upload error: "
+                    + error
+                );
+
+                return null;
+            }
+
+
+            // URL public để hiển thị ảnh
+            var publicUrl =
+                $"{supabaseUrl.TrimEnd('/')}" +
+                $"/storage/v1/object/public/" +
+                $"{bucketName}/" +
+                $"{fileName}";
+
+
+            return publicUrl;
+        }
     }
-
-
-    // =========================================
-    // LƯU DATABASE
-    // =========================================
-
-    await _context.SaveChangesAsync();
-
-
-    return RedirectToAction(
-        nameof(Index)
-    );
-}
-// =========================================
-// HIỂN THỊ XÁC NHẬN XÓA MÓN
-// =========================================
-[HttpGet]
-public async Task<IActionResult> Delete(int id)
-{
-    var food = await _context.Foods
-        .Include(f => f.Category)
-        .FirstOrDefaultAsync(f => f.Id == id);
-
-    if (food == null)
-    {
-        return NotFound();
-    }
-
-    return View(food);
-}
-
-
-// =========================================
-// Xử lý xóa hoặc ngừng bán món ăn
-// =========================================
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> DeleteConfirmed(int id)
-{
-    var food = await _context.Foods
-        .FirstOrDefaultAsync(f => f.Id == id);
-
-    if (food == null)
-    {
-        return NotFound();
-    }
-
-    // Kiểm tra món đã từng xuất hiện trong hóa đơn chưa
-    var hasOrderDetails = await _context.OrderDetails
-        .AnyAsync(od => od.FoodId == id);
-
-    if (hasOrderDetails)
-    {
-        // Nếu đã có lịch sử hóa đơn thì không xóa khỏi database
-        // mà chỉ chuyển sang trạng thái ngừng bán
-        food.IsAvailable = false;
-
-        await _context.SaveChangesAsync();
-
-        TempData["Message"] =
-            "Món đã có trong lịch sử hóa đơn nên hệ thống chuyển sang trạng thái Ngừng bán.";
-    }
-    else
-    {
-        // Nếu món chưa từng xuất hiện trong hóa đơn thì cho phép xóa hẳn
-        _context.Foods.Remove(food);
-
-        await _context.SaveChangesAsync();
-
-        TempData["Message"] =
-            "Đã xóa món thành công.";
-    }
-
-    return RedirectToAction(nameof(Index));
-}
-}
 }
