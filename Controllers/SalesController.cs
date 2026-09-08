@@ -21,11 +21,12 @@ namespace banhmihanhphuc.Controllers
         public async Task<IActionResult> Index()
         {
             // Lấy danh sách món đang bán
-            var foods = await _context.Foods
-                .Where(f => f.IsAvailable)
-                .OrderBy(f => f.CategoryId)
-                .ThenBy(f => f.Id)
-                .ToListAsync();
+           var foods = await _context.Foods
+    .Include(f => f.Category)
+    .Where(f => f.IsAvailable)
+    .OrderBy(f => f.CategoryId)
+    .ThenBy(f => f.Id)
+    .ToListAsync();
 
             // Lấy danh sách bàn
             var tables = await _context.RestaurantTables
