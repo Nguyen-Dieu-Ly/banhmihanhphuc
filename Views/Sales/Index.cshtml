@@ -154,6 +154,38 @@
         padding: 18px;
     }
 
+/* =========================
+   DANH MỤC MÓN ĂN
+   ========================= */
+
+.category-filter {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.category-btn {
+    padding: 10px 18px;
+    border: 1px solid #dddddd;
+    border-radius: 9px;
+    background: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.category-btn:hover {
+    border-color: #f97316;
+    color: #ea580c;
+}
+
+.category-btn.active {
+    background: #f97316;
+    border-color: #f97316;
+    color: white;
+}
+
     .food-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -486,14 +518,44 @@
                 Thực đơn
             </div>
 
+@* Lọc món ăn theo danh mục *@
+<div class="category-filter">
+
+    <button type="button"
+            class="category-btn active"
+            data-category="all">
+        Tất cả
+    </button>
+
+    <button type="button"
+            class="category-btn"
+            data-category="Bánh mì">
+        🥖 Bánh mì
+    </button>
+
+    <button type="button"
+            class="category-btn"
+            data-category="Đồ ăn vặt">
+        🍟 Đồ ăn vặt
+    </button>
+
+    <button type="button"
+            class="category-btn"
+            data-category="Đồ uống">
+        🥤 Đồ uống 
+    </button>
+
+</div>
+
             <div class="food-grid">
 
                 @foreach (var food in Model)
                 {
                     <div class="food-card"
-                         data-id="@food.Id"
-                         data-name="@food.Name"
-                         data-price="@food.Price">
+     data-id="@food.Id"
+     data-name="@food.Name"
+     data-price="@food.Price"
+     data-category="@food.Category?.Name">
 
                         <!-- Ảnh món: lấy trực tiếp từ ImageUrl của món -->
                         <div class="food-image">
@@ -650,6 +712,48 @@
 
     // Phương thức thanh toán mặc định
     let paymentMethod = "Cash";
+    // =========================================
+// LỌC MÓN ĂN THEO DANH MỤC
+// =========================================
+
+document.querySelectorAll(".category-btn")
+    .forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            const selectedCategory =
+                this.dataset.category;
+
+            // Đổi trạng thái nút đang chọn
+            document.querySelectorAll(".category-btn")
+                .forEach(function (btn) {
+                    btn.classList.remove("active");
+                });
+
+            this.classList.add("active");
+
+
+            // Lọc các món đang hiển thị
+            document.querySelectorAll(".food-card")
+                .forEach(function (foodCard) {
+
+                    const foodCategory =
+                        foodCard.dataset.category;
+
+                    if (selectedCategory === "all" ||
+                        foodCategory === selectedCategory) {
+
+                        foodCard.style.display = "block";
+                    }
+                    else {
+                        foodCard.style.display = "none";
+                    }
+
+                });
+
+        });
+
+    });
 
 
     const startSection =
