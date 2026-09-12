@@ -82,15 +82,22 @@
     }
 
     .edit-btn,
-    .delete-btn {
-        flex: 1;
-        padding: 8px 10px;
-        border-radius: 8px;
-        text-decoration: none;
-        text-align: center;
-        font-size: 14px;
-        font-weight: 600;
-    }
+.qr-btn,
+.delete-btn {
+    flex: 1;
+
+    padding: 8px 10px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    text-align: center;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
 
     .edit-btn {
         background: #fff7ed;
@@ -112,6 +119,13 @@
     border-radius: 9px;
     margin-bottom: 18px;
     font-weight: 500;
+}
+.qr-btn {
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border: 1px solid #bfdbfe;
 }
 
     @@media (max-width: 1000px) {
@@ -187,24 +201,39 @@
                 </div>
             }
 
-@* Các chức năng chỉnh sửa và xóa bàn *@
-            <div class="actions">
+@* Các chức năng sửa, xem QR order và xóa bàn *@
+           <div class="actions">
 
-                <a asp-controller="Tables"
-                   asp-action="Edit"
-                   asp-route-id="@table.Id"
-                   class="edit-btn">
-                    Sửa
-                </a>
+    <a asp-controller="Tables"
+       asp-action="Edit"
+       asp-route-id="@table.Id"
+       class="edit-btn">
 
-                <a asp-controller="Tables"
-                   asp-action="Delete"
-                   asp-route-id="@table.Id"
-                   class="delete-btn">
-                    Xóa
-                </a>
+        Sửa
 
-            </div>
+    </a>
+
+
+    <a asp-controller="Tables"
+       asp-action="QR"
+       asp-route-id="@table.Id"
+       class="qr-btn">
+
+        QR Order
+
+    </a>
+
+
+    <a asp-controller="Tables"
+       asp-action="Delete"
+       asp-route-id="@table.Id"
+       class="delete-btn">
+
+        Xóa
+
+    </a>
+
+</div>
 
         </div>
     }

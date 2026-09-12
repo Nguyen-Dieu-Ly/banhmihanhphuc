@@ -1,0 +1,315 @@
+@model banhmihanhphuc.Models.RestaurantTable
+
+@{
+    ViewData["Title"] = "QR Order";
+}
+
+
+<style>
+
+    .qr-page {
+        min-height: 75vh;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        padding: 30px 20px;
+    }
+
+
+    .qr-card {
+        width: 100%;
+
+        max-width: 440px;
+
+        background: white;
+
+        border-radius: 18px;
+
+        padding: 30px;
+
+        text-align: center;
+
+        box-shadow:
+            0 5px 22px rgba(0,0,0,0.08);
+    }
+
+
+    .qr-logo {
+        font-size: 24px;
+
+        font-weight: 800;
+
+        color: #f97316;
+
+        margin-bottom: 8px;
+    }
+
+
+    .qr-title {
+        font-size: 24px;
+
+        font-weight: 700;
+
+        margin-bottom: 5px;
+    }
+
+
+    .qr-table-name {
+        font-size: 21px;
+
+        font-weight: 700;
+
+        color: #ea580c;
+
+        margin-top: 8px;
+    }
+
+
+    .qr-description {
+        color: #777;
+
+        line-height: 1.5;
+
+        margin-top: 10px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .qr-image-box {
+        width: 300px;
+
+        height: 300px;
+
+        max-width: 100%;
+
+        margin: 0 auto;
+
+        padding: 12px;
+
+        background: white;
+
+        border: 1px solid #eeeeee;
+
+        border-radius: 14px;
+    }
+
+
+    .qr-image-box img {
+        width: 100%;
+
+        height: 100%;
+
+        object-fit: contain;
+    }
+
+
+    .qr-help {
+        margin-top: 15px;
+
+        font-size: 14px;
+
+        font-weight: 600;
+
+        color: #333;
+    }
+
+
+    .qr-url {
+        margin-top: 10px;
+
+        background: #f8f8f8;
+
+        border-radius: 8px;
+
+        padding: 10px;
+
+        color: #777;
+
+        font-size: 12px;
+
+        word-break: break-all;
+    }
+
+
+    .qr-actions {
+        display: flex;
+
+        gap: 10px;
+
+        margin-top: 22px;
+    }
+
+
+    .btn-back,
+    .btn-print {
+        flex: 1;
+
+        padding: 12px;
+
+        border-radius: 9px;
+
+        text-decoration: none;
+
+        text-align: center;
+
+        font-weight: 600;
+
+        cursor: pointer;
+    }
+
+
+    .btn-back {
+        background: white;
+
+        color: #333;
+
+        border: 1px solid #dddddd;
+    }
+
+
+    .btn-print {
+        border: none;
+
+        background: #f97316;
+
+        color: white;
+    }
+
+
+    .btn-print:hover {
+        background: #ea580c;
+    }
+
+
+    @@media print {
+
+        body {
+            background: white;
+        }
+
+
+        .sidebar,
+        .qr-actions {
+            display: none !important;
+        }
+
+
+        .main-content {
+            margin-left: 0 !important;
+        }
+
+
+        .qr-page {
+            min-height: auto;
+
+            padding: 0;
+        }
+
+
+        .qr-card {
+            box-shadow: none;
+
+            border: none;
+
+            max-width: 100%;
+
+            padding: 10px;
+        }
+
+
+        .qr-url {
+            display: none;
+        }
+    }
+
+</style>
+
+
+<div class="qr-page">
+
+    <div class="qr-card">
+
+
+        <div class="qr-logo">
+
+            BÁNH MÌ HẠNH PHÚC
+
+        </div>
+
+
+        <div class="qr-title">
+
+            QUÉT MÃ ĐỂ GỌI MÓN
+
+        </div>
+
+
+        <div class="qr-table-name">
+
+            🪑 @Model.TableName
+
+        </div>
+
+
+        <div class="qr-description">
+
+            Quét mã QR bằng điện thoại để xem thực đơn
+            và gọi món trực tiếp tại bàn.
+
+        </div>
+
+
+        <div class="qr-image-box">
+
+            <img src="@ViewBag.QrImage"
+                 alt="QR Order @Model.TableName" />
+
+        </div>
+
+
+        <div class="qr-help">
+
+            📱 Quét mã - Chọn món - Gửi yêu cầu
+
+        </div>
+
+
+        <div class="qr-url">
+
+            @ViewBag.OrderUrl
+
+        </div>
+
+
+        <div class="qr-actions">
+
+
+            <a asp-controller="Tables"
+               asp-action="Index"
+               class="btn-back">
+
+                ← Quay lại
+
+            </a>
+
+
+            <button type="button"
+                    class="btn-print"
+                    onclick="window.print()">
+
+                🖨 In QR
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>

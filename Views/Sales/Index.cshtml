@@ -390,6 +390,206 @@
         cursor: pointer;
     }
 
+    /* =========================
+   THÔNG BÁO ORDER TỪ QR
+   ========================= */
+
+.customer-order-notification {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    background: #fff7ed;
+    border: 1px solid #f97316;
+    border-left: 5px solid #f97316;
+
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+
+.customer-order-notification strong {
+    display: block;
+    color: #c2410c;
+    margin-bottom: 4px;
+}
+
+.customer-order-notification button {
+    border: none;
+    background: #f97316;
+    color: white;
+
+    padding: 9px 15px;
+    border-radius: 8px;
+
+    font-weight: 600;
+    cursor: pointer;
+
+    white-space: nowrap;
+}
+
+
+/* =========================
+   POPUP XEM ORDER KHÁCH
+   ========================= */
+
+.customer-order-modal {
+    display: none;
+
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,0.45);
+
+    z-index: 9999;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.customer-order-box {
+    width: 100%;
+    max-width: 520px;
+
+    max-height: 85vh;
+    overflow-y: auto;
+
+    background: white;
+
+    border-radius: 15px;
+
+    padding: 25px;
+
+    box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+}
+
+.customer-order-box h3 {
+    margin: 0 0 8px;
+    font-size: 23px;
+}
+
+.customer-request-table {
+    font-size: 18px;
+    font-weight: 700;
+
+    color: #ea580c;
+
+    margin-bottom: 16px;
+}
+
+.customer-request-time {
+    color: #777;
+    font-size: 13px;
+
+    margin-bottom: 15px;
+}
+
+.customer-request-item {
+    display: grid;
+
+    grid-template-columns: 1fr auto auto;
+
+    gap: 12px;
+
+    align-items: center;
+
+    padding: 11px 0;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+.customer-request-item-name {
+    font-weight: 600;
+}
+
+.customer-request-item-quantity {
+    font-weight: 700;
+}
+
+.customer-request-item-price {
+    color: #ea580c;
+    font-weight: 600;
+}
+
+.customer-request-total {
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-top: 17px;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.customer-request-total span:last-child {
+    color: #dc2626;
+}
+
+.customer-request-actions {
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 22px;
+}
+
+.customer-request-note {
+    margin-top: 15px;
+
+    padding: 12px 14px;
+
+    background: #fff7ed;
+
+    border: 1px solid #fed7aa;
+
+    border-radius: 9px;
+
+    color: #444;
+}
+
+.customer-request-note strong {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #c2410c;
+}
+
+.reject-request-btn,
+.accept-request-btn {
+    flex: 1;
+
+    padding: 12px;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.reject-request-btn {
+    background: white;
+
+    color: #dc2626;
+
+    border: 1px solid #fecaca;
+}
+
+.accept-request-btn {
+    background: #16a34a;
+
+    color: white;
+
+    border: none;
+}
+
     @@media (max-width: 1100px) {
         .order-layout {
             grid-template-columns: 1fr;
@@ -406,6 +606,113 @@
     Bán hàng
 </div>
 
+@* =========================================
+   THÔNG BÁO ORDER KHÁCH GỬI TỪ QR
+   ========================================= *@
+
+<div id="customerOrderNotification"
+     class="customer-order-notification">
+
+    <div>
+
+        <strong>
+            🔔 Có yêu cầu gọi món mới
+        </strong>
+
+        <div id="customerOrderText">
+        </div>
+
+    </div>
+
+
+    <button type="button"
+            id="viewCustomerOrderBtn">
+
+        Xem yêu cầu
+
+    </button>
+
+</div>
+
+
+@* =========================================
+   POPUP XEM CHI TIẾT ORDER KHÁCH
+   ========================================= *@
+
+<div id="customerOrderModal"
+     class="customer-order-modal">
+
+    <div class="customer-order-box">
+
+        <h3>
+            Yêu cầu gọi món
+        </h3>
+
+
+        <div id="customerRequestTable"
+             class="customer-request-table">
+        </div>
+
+
+        <div id="customerRequestTime"
+             class="customer-request-time">
+        </div>
+
+
+        <div id="customerRequestItems">
+        </div>
+
+        <div id="customerRequestNote"
+     class="customer-request-note"
+     style="display:none;">
+
+    <strong>
+        📝 Ghi chú:
+    </strong>
+
+    <div id="customerRequestNoteText">
+    </div>
+
+</div>
+
+
+        <div class="customer-request-total">
+
+            <span>
+                Tổng dự kiến:
+            </span>
+
+            <span id="customerRequestTotal">
+                0 đ
+            </span>
+
+        </div>
+
+
+        <div class="customer-request-actions">
+
+            <button type="button"
+                    class="reject-request-btn"
+                    id="rejectCustomerRequestBtn">
+
+                Từ chối
+
+            </button>
+
+
+            <button type="button"
+                    class="accept-request-btn"
+                    id="acceptCustomerRequestBtn">
+
+                ✓ Xác nhận order
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 @* Khu vực chọn hình thức bán hàng *@
 
@@ -1881,4 +2188,612 @@ document.getElementById("checkoutBtn")
         }
 
     });
+    // =========================================
+// ORDER KHÁCH GỬI TỪ QR
+// =========================================
+
+let pendingCustomerRequests = [];
+
+let selectedCustomerRequestId = null;
+
+
+// =========================================
+// KIỂM TRA CÓ ORDER QR MỚI KHÔNG
+// =========================================
+
+async function checkCustomerOrders() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/Sales/GetCustomerRequests"
+            );
+
+
+        if (!response.ok) {
+
+            return;
+
+        }
+
+
+        pendingCustomerRequests =
+            await response.json();
+
+
+        const notification =
+            document.getElementById(
+                "customerOrderNotification"
+            );
+
+
+        // Không có yêu cầu nào
+        if (
+            pendingCustomerRequests.length === 0
+        ) {
+
+            notification.style.display =
+                "none";
+
+            return;
+        }
+
+
+        // Lấy yêu cầu cũ nhất
+        const firstRequest =
+            pendingCustomerRequests[0];
+
+
+        notification.style.display =
+            "flex";
+
+
+        let notificationText =
+            firstRequest.tableName +
+            " có yêu cầu gọi món mới";
+
+
+        // Nếu có nhiều yêu cầu thì báo số lượng
+        if (
+            pendingCustomerRequests.length > 1
+        ) {
+
+            notificationText +=
+                " (" +
+                pendingCustomerRequests.length +
+                " yêu cầu đang chờ)";
+
+        }
+
+
+        document.getElementById(
+            "customerOrderText"
+        ).innerText =
+            notificationText;
+
+    }
+    catch (error) {
+
+        console.error(
+            "Lỗi kiểm tra order QR:",
+            error
+        );
+
+    }
+}
+
+
+
+// =========================================
+// BẤM XEM YÊU CẦU
+// =========================================
+
+document.getElementById(
+    "viewCustomerOrderBtn"
+)
+.addEventListener(
+    "click",
+    function () {
+
+        if (
+            pendingCustomerRequests.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        const request =
+            pendingCustomerRequests[0];
+
+
+        selectedCustomerRequestId =
+            request.id;
+
+
+        // Tên bàn
+        document.getElementById(
+            "customerRequestTable"
+        ).innerText =
+            "🪑 " +
+            request.tableName;
+
+
+        // Thời gian gửi
+        if (request.createdAt) {
+
+            const createdDate =
+                new Date(
+                    request.createdAt
+                );
+
+
+            document.getElementById(
+                "customerRequestTime"
+            ).innerText =
+                "Gửi lúc: " +
+                createdDate
+                    .toLocaleString(
+                        "vi-VN"
+                    );
+
+        }
+        else {
+
+            document.getElementById(
+                "customerRequestTime"
+            ).innerText =
+                "";
+
+        }
+
+
+        let html = "";
+
+        let total = 0;
+
+
+        request.items.forEach(
+            function (item) {
+
+                const itemTotal =
+                    Number(item.price) *
+                    Number(item.quantity);
+
+
+                total +=
+                    itemTotal;
+
+
+                html += `
+                    <div class="customer-request-item">
+
+                        <div class="customer-request-item-name">
+                            ${item.name}
+                        </div>
+
+                        <div class="customer-request-item-quantity">
+                            × ${item.quantity}
+                        </div>
+
+                        <div class="customer-request-item-price">
+                            ${itemTotal.toLocaleString("vi-VN")} đ
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        );
+
+
+        document.getElementById(
+            "customerRequestItems"
+        ).innerHTML =
+            html;
+
+            const noteBox =
+    document.getElementById(
+        "customerRequestNote"
+    );
+
+
+const noteText =
+    document.getElementById(
+        "customerRequestNoteText"
+    );
+
+
+if (
+    request.note &&
+    request.note.trim() !== ""
+) {
+
+    noteBox.style.display =
+        "block";
+
+    noteText.innerText =
+        request.note;
+
+}
+else {
+
+    noteBox.style.display =
+        "none";
+
+    noteText.innerText =
+        "";
+
+}
+
+
+        document.getElementById(
+            "customerRequestTotal"
+        ).innerText =
+            total.toLocaleString(
+                "vi-VN"
+            ) +
+            " đ";
+
+
+        document.getElementById(
+            "customerOrderModal"
+        ).style.display =
+            "flex";
+
+    }
+);
+
+
+
+// =========================================
+// XÁC NHẬN ORDER
+// =========================================
+
+document.getElementById(
+    "acceptCustomerRequestBtn"
+)
+.addEventListener(
+    "click",
+    async function () {
+
+        if (
+            !selectedCustomerRequestId
+        ) {
+
+            return;
+
+        }
+
+
+        const confirmAccept =
+            confirm(
+                "Xác nhận nhận order này?"
+            );
+
+
+        if (!confirmAccept) {
+
+            return;
+
+        }
+
+
+        try {
+
+            const body =
+                new URLSearchParams();
+
+
+            body.append(
+                "requestId",
+                selectedCustomerRequestId
+            );
+
+
+            const response =
+                await fetch(
+                    "/Sales/AcceptCustomerRequest",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+
+                        },
+
+                        body:
+                            body
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                const message =
+                    await response.text();
+
+
+                alert(
+                    message ||
+                    "Không thể xác nhận order."
+                );
+
+
+                return;
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            // Đóng popup
+            document.getElementById(
+                "customerOrderModal"
+            ).style.display =
+                "none";
+
+
+            alert(
+                "Đã nhận order của " +
+                data.tableName +
+                "."
+            );
+
+
+            selectedCustomerRequestId =
+                null;
+
+
+            // =========================================
+            // CẬP NHẬT TRẠNG THÁI BÀN TRÊN GIAO DIỆN
+            // =========================================
+
+            const tableCard =
+                document.querySelector(
+                    `.table-card[data-table-id="${data.tableId}"]`
+                );
+
+
+            if (tableCard) {
+
+                tableCard.dataset.tableStatus =
+                    "Serving";
+
+
+                const statusElement =
+                    tableCard.querySelector(
+                        ".table-status"
+                    );
+
+
+                if (statusElement) {
+
+                    statusElement.className =
+                        "table-status status-serving";
+
+
+                    statusElement.innerHTML =
+                        "🟠 Đang phục vụ";
+
+                }
+
+            }
+
+
+           // =========================================
+// TỰ ĐỘNG MỞ ĐÚNG BÀN VỪA NHẬN ORDER
+// =========================================
+
+currentOrderId =
+    data.orderId;
+
+selectedTableId =
+    data.tableId;
+
+
+// Tìm card của đúng bàn vừa nhận order
+const acceptedTableCard =
+    document.querySelector(
+        `.table-card[data-table-id="${data.tableId}"]`
+    );
+
+
+// Nếu tìm thấy bàn trên giao diện
+// thì tự động bấm vào bàn đó
+if (acceptedTableCard) {
+
+    acceptedTableCard.click();
+
+}
+else {
+
+    // Trường hợp không tìm thấy card
+    // thì vẫn tải trực tiếp hóa đơn
+    await loadTableOrder(
+        data.tableId
+    );
+
+}
+
+
+            // Load lại danh sách yêu cầu
+            await checkCustomerOrders();
+
+        }
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            alert(
+                "Có lỗi khi xác nhận order."
+            );
+
+        }
+
+    }
+);
+
+
+
+// =========================================
+// TỪ CHỐI ORDER
+// =========================================
+
+document.getElementById(
+    "rejectCustomerRequestBtn"
+)
+.addEventListener(
+    "click",
+    async function () {
+
+        if (
+            !selectedCustomerRequestId
+        ) {
+
+            return;
+
+        }
+
+
+        const confirmReject =
+            confirm(
+                "Bạn có chắc muốn từ chối yêu cầu gọi món này?"
+            );
+
+
+        if (!confirmReject) {
+
+            return;
+
+        }
+
+
+        try {
+
+            const body =
+                new URLSearchParams();
+
+
+            body.append(
+                "requestId",
+                selectedCustomerRequestId
+            );
+
+
+            const response =
+                await fetch(
+                    "/Sales/RejectCustomerRequest",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+
+                        },
+
+                        body:
+                            body
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                const message =
+                    await response.text();
+
+
+                alert(
+                    message ||
+                    "Không thể từ chối order."
+                );
+
+
+                return;
+
+            }
+
+
+            document.getElementById(
+                "customerOrderModal"
+            ).style.display =
+                "none";
+
+
+            selectedCustomerRequestId =
+                null;
+
+
+            await checkCustomerOrders();
+
+        }
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            alert(
+                "Có lỗi khi từ chối order."
+            );
+
+        }
+
+    }
+);
+
+
+
+// =========================================
+// BẤM RA NGOÀI POPUP ĐỂ ĐÓNG
+// =========================================
+
+document.getElementById(
+    "customerOrderModal"
+)
+.addEventListener(
+    "click",
+    function (event) {
+
+        if (
+            event.target === this
+        ) {
+
+            this.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+
+
+// =========================================
+// KIỂM TRA ORDER MỖI 5 GIÂY
+// =========================================
+
+setInterval(
+    checkCustomerOrders,
+    5000
+);
+
+
+// Kiểm tra ngay khi mở màn hình POS
+checkCustomerOrders();
 </script>

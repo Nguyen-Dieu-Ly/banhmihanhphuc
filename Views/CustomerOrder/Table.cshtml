@@ -1,0 +1,1860 @@
+@model List<banhmihanhphuc.Models.Food>
+
+@{
+    Layout = null;
+
+    var table =
+        ViewBag.Table as
+        banhmihanhphuc.Models.RestaurantTable;
+}
+
+<!DOCTYPE html>
+
+<html lang="vi">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        Order món - Bánh Mì Hạnh Phúc
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            background: #f6f7f9;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+
+            color: #222;
+        }
+
+
+        /* =========================
+           HEADER
+           ========================= */
+
+        .header {
+            background:
+                linear-gradient(
+                    135deg,
+                    #321d0d,
+                    #5a2d0c
+                );
+
+            color: white;
+
+            padding: 22px 18px 24px;
+
+            text-align: center;
+        }
+
+        .brand {
+            color: #ff8a1f;
+
+            font-size: 25px;
+
+            font-weight: 800;
+        }
+
+        .table-title {
+            margin-top: 10px;
+
+            font-size: 20px;
+
+            font-weight: 700;
+        }
+
+        .header-description {
+            margin-top: 5px;
+
+            font-size: 13px;
+
+            color: #eeeeee;
+        }
+
+
+        /* =========================
+           CONTAINER
+           ========================= */
+
+        .container {
+            width: 100%;
+
+            max-width: 1000px;
+
+            margin: auto;
+
+            padding: 18px;
+        }
+
+
+        /* =========================
+           THÔNG BÁO THÀNH CÔNG
+           ========================= */
+
+        .success-message {
+            display: none;
+
+            margin-bottom: 16px;
+
+            padding: 14px 16px;
+
+            border-radius: 10px;
+
+            background: #dcfce7;
+
+            border: 1px solid #86efac;
+
+            color: #166534;
+
+            font-weight: 600;
+        }
+
+
+        /* =========================
+           DANH MỤC
+           ========================= */
+
+        .category-filter {
+            display: flex;
+
+            gap: 9px;
+
+            overflow-x: auto;
+
+            margin-bottom: 18px;
+
+            padding-bottom: 3px;
+        }
+
+        .category-filter::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-btn {
+            flex-shrink: 0;
+
+            border: 1px solid #dddddd;
+
+            background: white;
+
+            padding: 10px 16px;
+
+            border-radius: 22px;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .category-btn.active {
+            background: #f97316;
+
+            border-color: #f97316;
+
+            color: white;
+        }
+
+
+        /* =========================
+           LƯỚI MÓN ĂN
+           ========================= */
+
+        .food-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 12px;
+        }
+
+        .food-card {
+            background: white;
+
+            border: 1px solid #eeeeee;
+
+            border-radius: 14px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 2px 9px rgba(0,0,0,0.04);
+        }
+
+
+        /* =========================
+           ẢNH MÓN
+           ========================= */
+
+        .food-image {
+            width: 100%;
+
+            height: 140px;
+
+            background: #fff7ed;
+        }
+
+        .food-image img {
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+        }
+
+        .food-no-image {
+            width: 100%;
+
+            height: 100%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 45px;
+        }
+
+
+        /* =========================
+           THÔNG TIN MÓN
+           ========================= */
+
+        .food-content {
+            padding: 12px;
+        }
+
+        .food-name {
+            min-height: 42px;
+
+            font-size: 15px;
+
+            line-height: 1.4;
+
+            font-weight: 700;
+        }
+
+        .food-price {
+            margin-top: 5px;
+
+            color: #ea580c;
+
+            font-size: 16px;
+
+            font-weight: 800;
+        }
+
+
+        /* =========================
+           SỐ LƯỢNG
+           ========================= */
+
+        .quantity {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 12px;
+
+            margin-top: 12px;
+        }
+
+        .quantity button {
+            width: 34px;
+
+            height: 34px;
+
+            border: none;
+
+            border-radius: 50%;
+
+            background: #fff7ed;
+
+            color: #ea580c;
+
+            font-size: 20px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .quantity-number {
+            min-width: 28px;
+
+            text-align: center;
+
+            font-size: 16px;
+
+            font-weight: 700;
+        }
+
+
+        /* =========================
+           THANH GIỎ HÀNG CỐ ĐỊNH
+           ========================= */
+
+        body {
+            padding-bottom: 90px;
+        }
+
+        .cart-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+
+            width: 100%;
+            max-width: 1000px;
+            min-height: 76px;
+
+            background: white;
+            border-top: 1px solid #eeeeee;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.10);
+
+            padding: 10px 14px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            z-index: 100;
+        }
+
+        .cart-summary-btn {
+            border: none;
+            background: transparent;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            padding: 0;
+
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .cart-icon-wrap {
+            position: relative;
+            font-size: 30px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            right: -8px;
+            top: -7px;
+
+            min-width: 20px;
+            height: 20px;
+
+            background: #f97316;
+            color: white;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 5px;
+
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .cart-summary-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-summary-text strong {
+            font-size: 16px;
+        }
+
+        .cart-summary-text span {
+            margin-top: 2px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .cart-bar-total {
+            margin-left: auto;
+
+            font-size: 20px;
+            font-weight: 800;
+            color: #dc2626;
+
+            white-space: nowrap;
+        }
+
+        .open-cart-btn {
+            border: none;
+            border-radius: 10px;
+
+            background: #f97316;
+            color: white;
+
+            padding: 14px 20px;
+
+            font-size: 16px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================
+           POPUP / BOTTOM SHEET GIỎ
+           ========================= */
+
+        .cart-modal {
+            display: none;
+
+            position: fixed;
+            inset: 0;
+
+            z-index: 1000;
+        }
+
+        .cart-modal.show {
+            display: block;
+        }
+
+        .cart-modal-overlay {
+            position: absolute;
+            inset: 0;
+
+            background: rgba(0,0,0,0.45);
+        }
+
+        .cart-sheet {
+            position: absolute;
+
+            left: 50%;
+            bottom: 0;
+
+            transform: translateX(-50%);
+
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+
+            background: #f7f7f7;
+
+            border-radius: 20px 20px 0 0;
+
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+
+            animation: cartSlideUp 0.25s ease;
+        }
+
+        @@keyframes cartSlideUp {
+            from {
+                transform: translate(-50%, 100%);
+            }
+
+            to {
+                transform: translate(-50%, 0);
+            }
+        }
+
+        .cart-sheet-header {
+            min-height: 60px;
+
+            background: white;
+            border-bottom: 1px solid #eeeeee;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 10px 14px;
+        }
+
+        .cart-back-btn {
+            width: 36px;
+            height: 36px;
+
+            border: none;
+            background: transparent;
+
+            font-size: 23px;
+
+            cursor: pointer;
+        }
+
+        .cart-sheet-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .cart-sheet-body {
+            padding: 14px;
+            overflow-y: auto;
+        }
+
+        .selected-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 10px;
+        }
+
+        .add-more-btn {
+            border: none;
+            background: transparent;
+
+            color: #f97316;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================
+           DANH SÁCH MÓN TRONG GIỎ
+           ========================= */
+
+        .cart-detail {
+            margin-bottom: 14px;
+
+            padding: 0 14px;
+
+            background: white;
+
+            border-radius: 14px;
+        }
+
+        .cart-detail-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+
+            align-items: center;
+
+            padding: 14px 0;
+
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .cart-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-detail-name {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .cart-detail-price {
+            margin-top: 5px;
+
+            font-size: 14px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .cart-detail-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-detail-right button {
+            width: 30px;
+            height: 30px;
+
+            border: 1px solid #cccccc;
+            border-radius: 50%;
+
+            background: white;
+            color: #f97316;
+
+            font-size: 18px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .cart-detail-qty {
+            width: 20px;
+
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .cart-empty-text {
+            padding: 25px;
+
+            text-align: center;
+            color: #777;
+        }
+
+
+        /* =========================
+           GHI CHÚ TRONG GIỎ
+           ========================= */
+
+        .cart-note-box {
+            padding: 14px;
+
+            background: white;
+
+            border-radius: 14px;
+        }
+
+        .cart-note-box label {
+            display: block;
+
+            margin-bottom: 10px;
+
+            font-weight: 700;
+        }
+
+        .cart-note-box textarea {
+            width: 100%;
+            min-height: 90px;
+
+            border: 1px solid #dddddd;
+            border-radius: 9px;
+
+            padding: 11px;
+
+            resize: none;
+
+            font-family: inherit;
+
+            outline: none;
+        }
+
+        .cart-note-box textarea:focus {
+            border-color: #f97316;
+        }
+
+        .note-count {
+            margin-top: 4px;
+
+            text-align: right;
+
+            color: #999;
+            font-size: 12px;
+        }
+
+
+        /* =========================
+           FOOTER GIỎ HÀNG
+           ========================= */
+
+        .cart-sheet-footer {
+            padding: 13px 14px 16px;
+
+            background: white;
+            border-top: 1px solid #eeeeee;
+        }
+
+        .cart-footer-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 12px;
+        }
+
+        .cart-footer-summary span {
+            font-weight: 600;
+        }
+
+        .cart-footer-summary strong {
+            color: #dc2626;
+
+            font-size: 20px;
+        }
+
+        .confirm-order-btn {
+            width: 100%;
+
+            border: none;
+            border-radius: 9px;
+
+            background: #f97316;
+            color: white;
+
+            padding: 14px;
+
+            font-size: 16px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .confirm-order-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+
+        /* =========================
+           POPUP THÀNH CÔNG
+           ========================= */
+
+        .success-modal {
+            display: none;
+
+            position: fixed;
+            inset: 0;
+
+            background: rgba(0,0,0,0.5);
+
+            z-index: 2000;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+        .success-modal.show {
+            display: flex;
+        }
+
+        .success-card {
+            width: 100%;
+            max-width: 370px;
+
+            background: white;
+
+            border-radius: 18px;
+
+            padding: 35px 25px;
+
+            text-align: center;
+
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .success-icon {
+            width: 75px;
+            height: 75px;
+
+            margin: auto;
+
+            border-radius: 50%;
+
+            background: #dcfce7;
+            color: #16a34a;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 42px;
+            font-weight: 800;
+        }
+
+        .success-title {
+            margin-top: 18px;
+
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .success-description {
+            margin-top: 9px;
+
+            color: #777;
+
+            line-height: 1.5;
+        }
+
+        .success-btn {
+            width: 100%;
+
+            margin-top: 22px;
+
+            border: none;
+            border-radius: 9px;
+
+            padding: 13px;
+
+            background: #f97316;
+            color: white;
+
+            font-size: 15px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+           ========================= */
+
+        @@media (min-width: 700px) {
+
+            .food-grid {
+                grid-template-columns:
+                    repeat(4, 1fr);
+            }
+
+            .food-image {
+                height: 160px;
+            }
+
+        }
+
+        @@media (max-width: 600px) {
+
+            .container {
+                padding: 14px;
+            }
+
+            .cart-bar-total {
+                font-size: 17px;
+            }
+
+            .open-cart-btn {
+                padding: 13px 16px;
+            }
+
+            .cart-summary-text span {
+                display: none;
+            }
+
+            .brand {
+                font-size: 22px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <!-- =========================
+         HEADER
+         ========================= -->
+
+    <div class="header">
+
+        <div class="brand">
+            BÁNH MÌ HẠNH PHÚC
+        </div>
+
+        <div class="table-title">
+            🪑 @table?.TableName
+        </div>
+
+        <div class="header-description">
+            Chọn món và gửi yêu cầu đến quầy
+        </div>
+
+    </div>
+
+
+    <div class="container">
+
+
+        <!-- =========================
+             DANH MỤC
+             ========================= -->
+
+        <div class="category-filter">
+
+            <button type="button"
+                    class="category-btn active"
+                    data-category="all">
+
+                Tất cả
+
+            </button>
+
+
+            <button type="button"
+                    class="category-btn"
+                    data-category="Bánh mì">
+
+                🥖 Bánh mì
+
+            </button>
+
+
+            <button type="button"
+                    class="category-btn"
+                    data-category="Đồ ăn vặt">
+
+                🍟 Đồ ăn vặt
+
+            </button>
+
+
+            <button type="button"
+                    class="category-btn"
+                    data-category="Đồ uống">
+
+                🥤 Đồ uống
+
+            </button>
+
+        </div>
+
+
+        <!-- =========================
+             DANH SÁCH MÓN
+             ========================= -->
+
+        <div class="food-grid">
+
+            @foreach (var food in Model)
+            {
+               <div class="food-card"
+     data-food-id="@food.Id"
+     data-category="@food.Category?.Name"
+     onclick="changeQuantity(@food.Id, 1)">
+
+
+                    <div class="food-image">
+
+                        @if (!string.IsNullOrWhiteSpace(food.ImageUrl))
+                        {
+                            <img src="@food.ImageUrl"
+                                 alt="@food.Name"
+                                 onerror="this.style.display='none';
+                                          this.nextElementSibling.style.display='flex';" />
+
+                            <div class="food-no-image"
+                                 style="display:none;">
+
+                                🥖
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="food-no-image">
+
+                                🥖
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <div class="food-content">
+
+                        <div class="food-name">
+                            @food.Name
+                        </div>
+
+
+                        <div class="food-price">
+
+                            @food.Price.ToString("N0") đ
+
+                        </div>
+
+
+                        <div class="quantity">
+
+    <button type="button"
+            onclick="event.stopPropagation(); changeQuantity(@food.Id, -1)">
+        −
+    </button>
+
+    <span class="quantity-number"
+          id="qty-@food.Id">
+        0
+    </span>
+
+    <button type="button"
+            onclick="event.stopPropagation(); changeQuantity(@food.Id, 1)">
+        +
+    </button>
+
+</div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =========================
+         THANH GIỎ HÀNG DƯỚI MÀN HÌNH
+         ========================= -->
+
+    <div id="cartBar"
+         class="cart-bar">
+
+        <button type="button"
+                class="cart-summary-btn"
+                onclick="openCartModal()">
+
+            <div class="cart-icon-wrap">
+
+                🛒
+
+                <span id="cartBadge"
+                      class="cart-badge">
+                    0
+                </span>
+
+            </div>
+
+
+            <div class="cart-summary-text">
+
+                <strong id="cartCount">
+                    0 món
+                </strong>
+
+                <span>
+                    Tạm tính
+                </span>
+
+            </div>
+
+        </button>
+
+
+        <div id="totalPrice"
+             class="cart-bar-total">
+            0 đ
+        </div>
+
+
+        <button type="button"
+                class="open-cart-btn"
+                onclick="openCartModal()">
+
+            Gọi món
+
+        </button>
+
+    </div>
+
+
+    <!-- =========================
+         GIỎ HÀNG / XÁC NHẬN ORDER
+         ========================= -->
+
+    <div id="cartModal"
+         class="cart-modal">
+
+        <div class="cart-modal-overlay"
+             onclick="closeCartModal()">
+        </div>
+
+
+        <div class="cart-sheet">
+
+            <div class="cart-sheet-header">
+
+                <button type="button"
+                        class="cart-back-btn"
+                        onclick="closeCartModal()">
+                    ←
+                </button>
+
+
+                <div class="cart-sheet-title">
+                    Xác nhận gọi món
+                </div>
+
+
+                <div style="width:36px;">
+                </div>
+
+            </div>
+
+
+            <div class="cart-sheet-body">
+
+                <div class="selected-header">
+
+                    <strong id="selectedTitle">
+                        Món đã chọn (0)
+                    </strong>
+
+
+                    <button type="button"
+                            class="add-more-btn"
+                            onclick="closeCartModal()">
+
+                        Thêm món
+
+                    </button>
+
+                </div>
+
+
+                <div id="cartDetail"
+                     class="cart-detail">
+
+                    <div class="cart-empty-text">
+                        Chưa chọn món nào
+                    </div>
+
+                </div>
+
+
+                <div class="cart-note-box">
+
+                    <label for="customerNote">
+                        Thêm lưu ý cho quán
+                    </label>
+
+
+                    <textarea id="customerNote"
+                              maxlength="255"
+                              placeholder="Cho quán biết thêm về yêu cầu của bạn"></textarea>
+
+
+                    <div class="note-count">
+
+                        <span id="noteLength">
+                            0
+                        </span>/255
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="cart-sheet-footer">
+
+                <div class="cart-footer-summary">
+
+                    <span id="footerCount">
+                        Tổng tiền (0 món)
+                    </span>
+
+
+                    <strong id="footerTotal">
+                        0 đ
+                    </strong>
+
+                </div>
+
+
+                <button type="button"
+                        class="confirm-order-btn"
+                        id="submitOrderBtn"
+                        onclick="submitOrder()">
+
+                    Xác nhận gọi món
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         POPUP GỌI MÓN THÀNH CÔNG
+         ========================= -->
+
+    <div id="successModal"
+         class="success-modal">
+
+        <div class="success-card">
+
+            <div class="success-icon">
+                ✓
+            </div>
+
+
+            <div class="success-title">
+                Gọi món thành công
+            </div>
+
+
+            <div class="success-description">
+
+                Yêu cầu gọi món đã được gửi đến quầy.
+
+                <br />
+
+                Vui lòng chờ nhân viên xác nhận.
+
+            </div>
+
+
+            <button type="button"
+                    onclick="closeSuccessModal()"
+                    class="success-btn">
+
+                Tiếp tục gọi món
+
+            </button>
+
+        </div>
+
+    </div>
+
+<script>
+
+    // =========================================
+    // THÔNG TIN BÀN
+    // =========================================
+
+    const tableId =
+        @(table?.Id ?? 0);
+
+
+    // =========================================
+    // DANH SÁCH MÓN
+    // =========================================
+
+    const foods = {};
+
+
+    @foreach (var food in Model)
+    {
+        <text>
+
+            foods[@food.Id] = {
+
+                id:
+                    @food.Id,
+
+                name:
+                    @Html.Raw(
+                        System.Text.Json.JsonSerializer.Serialize(
+                            food.Name
+                        )
+                    ),
+
+                price:
+    @food.Price.ToString(
+        System.Globalization.CultureInfo.InvariantCulture
+    ),
+
+quantity:
+    0
+            };
+
+        </text>
+    }
+
+
+
+    // =========================================
+    // TĂNG / GIẢM SỐ LƯỢNG
+    // =========================================
+
+    function changeQuantity(
+        foodId,
+        change
+    ) {
+
+        const item =
+            foods[foodId];
+
+
+        if (!item) {
+            return;
+        }
+
+
+        item.quantity += change;
+
+
+        if (item.quantity < 0) {
+
+            item.quantity = 0;
+
+        }
+
+
+        document.getElementById(
+            "qty-" + foodId
+        ).innerText =
+            item.quantity;
+
+
+        renderSummary();
+    }
+
+
+
+    // =========================================
+    // HIỂN THỊ TÓM TẮT + CHI TIẾT GIỎ
+    // =========================================
+
+    function renderSummary() {
+
+        let count = 0;
+
+        let total = 0;
+
+        let cartHtml = "";
+
+
+        Object.values(foods)
+            .forEach(
+                function (item) {
+
+                    if (item.quantity <= 0) {
+                        return;
+                    }
+
+
+                    count +=
+                        item.quantity;
+
+
+                    const itemTotal =
+                        item.price *
+                        item.quantity;
+
+
+                    total +=
+                        itemTotal;
+
+
+                    cartHtml += `
+                        <div class="cart-detail-item">
+
+                            <div>
+
+                                <div class="cart-detail-name">
+                                    ${item.name}
+                                </div>
+
+                                <div class="cart-detail-price">
+                                    ${item.price.toLocaleString("vi-VN")} đ
+                                </div>
+
+                            </div>
+
+
+                            <div class="cart-detail-right">
+
+                                <button type="button"
+                                        onclick="changeCartQuantity(${item.id}, -1)">
+                                    −
+                                </button>
+
+                                <span class="cart-detail-qty">
+                                    ${item.quantity}
+                                </span>
+
+                                <button type="button"
+                                        onclick="changeCartQuantity(${item.id}, 1)">
+                                    +
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+            );
+
+
+        document.getElementById(
+            "cartCount"
+        ).innerText =
+            count + " món";
+
+
+        document.getElementById(
+            "cartBadge"
+        ).innerText =
+            count;
+
+
+        document.getElementById(
+            "totalPrice"
+        ).innerText =
+            total.toLocaleString(
+                "vi-VN"
+            ) + " đ";
+
+
+        document.getElementById(
+            "selectedTitle"
+        ).innerText =
+            "Món đã chọn (" +
+            count +
+            ")";
+
+
+        document.getElementById(
+            "footerCount"
+        ).innerText =
+            "Tổng tiền (" +
+            count +
+            " món)";
+
+
+        document.getElementById(
+            "footerTotal"
+        ).innerText =
+            total.toLocaleString(
+                "vi-VN"
+            ) + " đ";
+
+
+        const cartDetail =
+            document.getElementById(
+                "cartDetail"
+            );
+
+
+        if (count === 0) {
+
+            cartDetail.innerHTML = `
+                <div class="cart-empty-text">
+                    Chưa chọn món nào
+                </div>
+            `;
+
+        }
+        else {
+
+            cartDetail.innerHTML =
+                cartHtml;
+
+        }
+    }
+
+
+    // =========================================
+    // MỞ / ĐÓNG GIỎ HÀNG
+    // =========================================
+
+    function openCartModal() {
+
+        const selectedItems =
+            Object.values(foods)
+                .filter(
+                    x =>
+                        x.quantity > 0
+                );
+
+
+        if (selectedItems.length === 0) {
+
+            alert(
+                "Bạn chưa chọn món nào."
+            );
+
+            return;
+        }
+
+
+        renderSummary();
+
+
+        document.getElementById(
+            "cartModal"
+        ).classList.add(
+            "show"
+        );
+
+
+        document.body.style.overflow =
+            "hidden";
+    }
+
+
+    function closeCartModal() {
+
+        document.getElementById(
+            "cartModal"
+        ).classList.remove(
+            "show"
+        );
+
+
+        document.body.style.overflow =
+            "";
+    }
+
+
+    function changeCartQuantity(
+        foodId,
+        change
+    ) {
+
+        changeQuantity(
+            foodId,
+            change
+        );
+
+
+        const hasItems =
+            Object.values(foods)
+                .some(
+                    x =>
+                        x.quantity > 0
+                );
+
+
+        if (!hasItems) {
+
+            closeCartModal();
+
+        }
+    }
+
+
+    function closeSuccessModal() {
+
+        document.getElementById(
+            "successModal"
+        ).classList.remove(
+            "show"
+        );
+
+
+        document.body.style.overflow =
+            "";
+    }
+
+
+    // =========================================
+    // ĐẾM KÝ TỰ GHI CHÚ
+    // =========================================
+
+    const customerNote =
+        document.getElementById(
+            "customerNote"
+        );
+
+
+    customerNote.addEventListener(
+        "input",
+        function () {
+
+            document.getElementById(
+                "noteLength"
+            ).innerText =
+                this.value.length;
+
+        }
+    );
+
+
+    // =========================================
+    // LỌC MÓN THEO DANH MỤC
+    // =========================================
+
+    document.querySelectorAll(
+        ".category-btn"
+    )
+    .forEach(
+        function (button) {
+
+            button.addEventListener(
+                "click",
+
+                function () {
+
+                    document.querySelectorAll(
+                        ".category-btn"
+                    )
+                    .forEach(
+                        function (btn) {
+
+                            btn.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    this.classList.add(
+                        "active"
+                    );
+
+
+                    const category =
+                        this.dataset.category;
+
+
+                    document.querySelectorAll(
+                        ".food-card"
+                    )
+                    .forEach(
+                        function (card) {
+
+                            if (
+                                category === "all" ||
+                                card.dataset.category === category
+                            ) {
+
+                                card.style.display =
+                                    "block";
+
+                            }
+                            else {
+
+                                card.style.display =
+                                    "none";
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+
+    // =========================================
+    // GỬI ORDER ĐẾN POS
+    // =========================================
+
+    async function submitOrder() {
+
+        const items =
+            Object.values(foods)
+
+                .filter(
+                    x =>
+                        x.quantity > 0
+                )
+
+                .map(
+                    x => ({
+                        foodId:
+                            x.id,
+
+                        quantity:
+                            x.quantity
+                    })
+                );
+
+
+        if (items.length === 0) {
+
+            alert(
+                "Vui lòng chọn ít nhất một món."
+            );
+
+            return;
+        }
+
+
+        if (!tableId) {
+
+            alert(
+                "Không xác định được bàn."
+            );
+
+            return;
+        }
+
+
+        const submitButton =
+            document.getElementById(
+                "submitOrderBtn"
+            );
+
+
+        submitButton.disabled =
+            true;
+
+
+        submitButton.innerText =
+            "Đang gửi yêu cầu...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/CustomerOrder/Submit",
+
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                       body:
+    JSON.stringify({
+
+        tableId:
+            tableId,
+
+        note:
+            customerNote.value.trim(),
+
+        items:
+            items
+
+    })
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                const message =
+                    await response.text();
+
+
+                alert(
+                    message ||
+                    "Không thể gửi yêu cầu."
+                );
+
+
+                return;
+            }
+
+
+            await response.json();
+
+
+            // Đóng giỏ trước
+            closeCartModal();
+
+
+            // Reset số lượng món
+            Object.values(foods)
+                .forEach(
+                    function (item) {
+
+                        item.quantity =
+                            0;
+
+
+                        const quantityElement =
+                            document.getElementById(
+                                "qty-" +
+                                item.id
+                            );
+
+
+                        if (quantityElement) {
+
+                            quantityElement.innerText =
+                                "0";
+
+                        }
+
+                    }
+                );
+
+
+            // Reset ghi chú
+            customerNote.value =
+                "";
+
+
+            document.getElementById(
+                "noteLength"
+            ).innerText =
+                "0";
+
+
+            // Reset thanh giỏ hàng
+            renderSummary();
+
+
+            // Hiện popup thành công
+            document.getElementById(
+                "successModal"
+            ).classList.add(
+                "show"
+            );
+
+
+            document.body.style.overflow =
+                "hidden";
+
+        }
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            alert(
+                "Có lỗi khi gửi yêu cầu đến quầy."
+            );
+
+        }
+        finally {
+
+            submitButton.disabled =
+                false;
+
+
+            submitButton.innerText =
+                "Xác nhận gọi món";
+
+        }
+    }
+
+
+    // Hiển thị trạng thái ban đầu
+    renderSummary();
+
+</script>
+
+
+</body>
+
+</html>

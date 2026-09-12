@@ -783,6 +783,430 @@ public async Task<IActionResult> CheckoutTakeAway(
 }
 
 // =====================================================
+// LẤY CÁC YÊU CẦU ORDER KHÁCH GỬI TỪ QR
+// =====================================================
+
+[HttpGet]
+public async Task<IActionResult> GetCustomerRequests()
+{
+    var requests =
+        await _context.CustomerOrderRequests
+
+            .Include(r => r.Table)
+
+            .Include(r => r.Details)
+                .ThenInclude(d => d.Food)
+
+            .Where(r =>
+                r.Status == "Pending")
+
+            .OrderBy(r =>
+                r.CreatedAt)
+
+            .Select(r => new
+            {
+                id = r.Id,
+
+                tableId = r.TableId,
+
+                tableName =
+                    r.Table != null
+                        ? r.Table.TableName
+                        : "",
+
+                createdAt = r.CreatedAt,
+
+                note = r.Note,
+
+                items =
+                    r.Details.Select(d => new
+                    {
+                        foodId = d.FoodId,
+
+                        name =
+                            d.Food != null
+                                ? d.Food.Name
+                                : "",
+
+                        quantity =
+                            d.Quantity,
+
+                        price =
+                            d.Food != null
+                                ? d.Food.Price
+                                : 0
+                    })
+            })
+
+            .ToListAsync();
+
+    return Json(requests);
+}
+
+
+// =====================================================
+// XÁC NHẬN YÊU CẦU ORDER CỦA KHÁCH
+// =====================================================
+
+[HttpPost]
+public async Task<IActionResult> AcceptCustomerRequest(
+    int requestId)
+{
+    var request =
+        await _context.CustomerOrderRequests
+
+            .Include(r => r.Table)
+
+            .Include(r => r.Details)
+                .ThenInclude(d => d.Food)
+
+            .FirstOrDefaultAsync(r =>
+                r.Id == requestId &&
+                r.Status == "Pending");
+
+    if (request == null)
+    {
+        return NotFound(
+            "Không tìm thấy yêu cầu gọi món."
+        );
+    }
+
+
+    var userIdText =
+        User.FindFirstValue(
+            ClaimTypes.NameIdentifier
+        );
+
+    if (!int.TryParse(
+        userIdText,
+        out int userId))
+    {
+        return Unauthorized();
+    }
+
+
+    await using var transaction =
+        await _context.Database
+            .BeginTransactionAsync();
+
+    try
+    {
+        // =========================================
+        // TÌM HÓA ĐƠN OPEN HIỆN TẠI CỦA BÀN
+        // =========================================
+
+        var order =
+            await _context.Orders
+
+                .Include(o =>
+                    o.OrderDetails)
+
+                .FirstOrDefaultAsync(o =>
+                    o.TableId ==
+                        request.TableId &&
+
+                    o.OrderType ==
+                        "DineIn" &&
+
+                    o.Status ==
+                        "Open");
+
+
+        // =========================================
+        // NẾU BÀN CHƯA CÓ HÓA ĐƠN
+        // THÌ TẠO MỚI
+        // =========================================
+
+        if (order == null)
+        {
+            order = new Order
+            {
+                OrderCode =
+                    "TMP-" +
+                    Guid.NewGuid()
+                        .ToString("N"),
+
+                UserId =
+                    userId,
+
+                TableId =
+                    request.TableId,
+
+                OrderType =
+                    "DineIn",
+
+                Status =
+                    "Open",
+
+                Subtotal =
+                    0,
+
+                Discount =
+                    0,
+
+                TotalAmount =
+                    0,
+
+                CreatedAt =
+                    DateTime.Now
+            };
+
+
+            _context.Orders.Add(
+                order
+            );
+
+
+            await _context
+                .SaveChangesAsync();
+
+
+            // Tạo mã hóa đơn chính thức
+            order.OrderCode =
+                $"HD{order.Id:D6}";
+        }
+
+
+        // =========================================
+        // ĐƯA CÁC MÓN KHÁCH ORDER
+        // VÀO HÓA ĐƠN CỦA BÀN
+        // =========================================
+
+        foreach (
+            var requestItem
+            in request.Details)
+        {
+            var food =
+                requestItem.Food;
+
+
+            // Nếu món bị ngừng bán trước lúc
+            // nhân viên xác nhận thì bỏ qua
+            if (food == null ||
+                !food.IsAvailable)
+            {
+                continue;
+            }
+
+
+            var detail =
+                order.OrderDetails
+                    .FirstOrDefault(x =>
+                        x.FoodId ==
+                            food.Id);
+
+
+            // Chưa có món trong hóa đơn
+            if (detail == null)
+            {
+                detail =
+                    new OrderDetail
+                    {
+                        OrderId =
+                            order.Id,
+
+                        FoodId =
+                            food.Id,
+
+                        Quantity =
+                            requestItem.Quantity,
+
+                        UnitPrice =
+                            food.Price,
+
+                        Subtotal =
+                            food.Price *
+                            requestItem.Quantity
+                    };
+
+
+                _context.OrderDetails
+                    .Add(detail);
+
+
+                // Thêm vào collection để
+                // tính tổng ngay bên dưới
+                order.OrderDetails
+                    .Add(detail);
+            }
+
+            // Món đã có thì cộng thêm số lượng
+            else
+            {
+                detail.Quantity +=
+                    requestItem.Quantity;
+
+
+                detail.Subtotal =
+                    detail.Quantity *
+                    detail.UnitPrice;
+            }
+        }
+
+
+        // =========================================
+        // KIỂM TRA ORDER CÓ MÓN HỢP LỆ KHÔNG
+        // =========================================
+
+        if (
+            order.OrderDetails.Count == 0
+        )
+        {
+            await transaction
+                .RollbackAsync();
+
+            return BadRequest(
+                "Không có món hợp lệ để thêm vào hóa đơn."
+            );
+        }
+
+
+        // =========================================
+        // TÍNH LẠI TỔNG TIỀN
+        // =========================================
+
+        order.Subtotal =
+            order.OrderDetails
+
+                .Where(x =>
+                    x.Quantity > 0)
+
+                .Sum(x =>
+                    x.Quantity *
+                    x.UnitPrice);
+
+
+        order.TotalAmount =
+            order.Subtotal -
+            order.Discount;
+
+
+        if (order.TotalAmount < 0)
+        {
+            order.TotalAmount = 0;
+        }
+
+
+        // =========================================
+        // CHUYỂN BÀN SANG ĐANG PHỤC VỤ
+        // =========================================
+
+        if (request.Table != null)
+        {
+            request.Table.Status =
+                "Serving";
+        }
+
+
+        // =========================================
+        // ĐÁNH DẤU YÊU CẦU ĐÃ ĐƯỢC XÁC NHẬN
+        // =========================================
+
+        request.Status =
+            "Accepted";
+
+        request.AcceptedAt =
+            DateTime.Now;
+
+
+        await _context
+            .SaveChangesAsync();
+
+
+        await transaction
+            .CommitAsync();
+
+
+        return Json(new
+        {
+            success = true,
+
+            requestId =
+                request.Id,
+
+            tableId =
+                request.TableId,
+
+            tableName =
+                request.Table != null
+                    ? request.Table.TableName
+                    : "",
+
+            orderId =
+                order.Id,
+
+            orderCode =
+                order.OrderCode,
+
+            subtotal =
+                order.Subtotal,
+
+            totalAmount =
+                order.TotalAmount
+        });
+    }
+    catch (Exception ex)
+    {
+        await transaction
+            .RollbackAsync();
+
+        Console.WriteLine(
+            "AcceptCustomerRequest error: "
+            + ex.Message
+        );
+
+        return StatusCode(
+            500,
+            "Có lỗi khi xác nhận order của khách."
+        );
+    }
+}
+
+
+// =====================================================
+// TỪ CHỐI YÊU CẦU ORDER CỦA KHÁCH
+// =====================================================
+
+[HttpPost]
+public async Task<IActionResult> RejectCustomerRequest(
+    int requestId)
+{
+    var request =
+        await _context.CustomerOrderRequests
+            .FirstOrDefaultAsync(r =>
+                r.Id == requestId &&
+                r.Status == "Pending");
+
+
+    if (request == null)
+    {
+        return NotFound(
+            "Không tìm thấy yêu cầu gọi món."
+        );
+    }
+
+
+    request.Status =
+        "Rejected";
+
+    request.RejectedAt =
+        DateTime.Now;
+
+
+    await _context
+        .SaveChangesAsync();
+
+
+    return Json(new
+    {
+        success = true,
+
+        message =
+            "Đã từ chối yêu cầu gọi món."
+    });
+}
+
+// =====================================================
 // HIỂN THỊ HÓA ĐƠN ĐỂ IN
 // =====================================================
 
